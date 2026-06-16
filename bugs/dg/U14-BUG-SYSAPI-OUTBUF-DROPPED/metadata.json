@@ -1,0 +1,8 @@
+{
+  "id": "U14",
+  "family": "BUG-SYSAPI-OUTBUF-DROPPED",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "sysapi_output_buffer_effects",
+  "report_path": "$DG_REPO/reports/precision/BUG-SYSAPI-OUTBUF-DROPPED.md"
+}

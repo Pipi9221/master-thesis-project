@@ -1,0 +1,8 @@
+{
+  "id": "S02",
+  "family": "BUG-VECTOR-INSERTELEMENT-CRASH",
+  "bucket": "already_submitted_upstream",
+  "counted_in_strict": "no",
+  "category": "fatal_upstream_related",
+  "report_path": "$DG_REPO/reports/fatal/BUG-VECTOR-INSERTELEMENT-CRASH.md"
+}

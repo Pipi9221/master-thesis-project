@@ -17,6 +17,10 @@ class ValidationStatus(StrEnum):
     NOT_RUN = "not_run"
     SUCCESS = "success"
     FAILED = "failed"
+    COMPILE_OK = "compile_ok"
+    BEHAVIOR_OK = "behavior_ok"
+    BEHAVIOR_MISMATCH = "behavior_mismatch"
+    FAILED_COMPILE = "failed_compile"
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,7 +93,7 @@ class MutationMeta:
             ),
             inserted_symbols=tuple(str(value) for value in payload.get("inserted_symbols", [])),
             attempt_count=int(payload["attempt_count"]),
-            validation_status=ValidationStatus(str(payload["validation_status"])),
+            validation_status=_parse_validation_status(payload.get("validation_status")),
             failure_reason=_optional_str(payload.get("failure_reason")),
             failure_history=tuple(str(value) for value in payload.get("failure_history", [])),
         )
@@ -105,6 +109,15 @@ def write_mutation_meta(path: str | Path, meta: MutationMeta) -> None:
 def load_mutation_meta(path: str | Path) -> MutationMeta:
     payload = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     return MutationMeta.from_dict(payload)
+
+
+def _parse_validation_status(value: object) -> ValidationStatus:
+    if value is None:
+        return ValidationStatus.NOT_RUN
+    try:
+        return ValidationStatus(str(value))
+    except ValueError:
+        return ValidationStatus.FAILED
 
 
 def _optional_int(value: object) -> int | None:

@@ -1,0 +1,8 @@
+{
+  "id": "U06",
+  "family": "BUG-CMPXCHG-LOCAL-INIT-MISSLICE",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "precision_correctness",
+  "report_path": "$DG_REPO/reports/precision/BUG-CMPXCHG-LOCAL-INIT-MISSLICE.md"
+}

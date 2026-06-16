@@ -1,0 +1,8 @@
+{
+  "id": "U03",
+  "family": "BUG-SETJMP-LONGJMP-MISSLICE",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "precision_correctness",
+  "report_path": "$DG_REPO/reports/precision/BUG-SETJMP-LONGJMP-MISSLICE.md"
+}

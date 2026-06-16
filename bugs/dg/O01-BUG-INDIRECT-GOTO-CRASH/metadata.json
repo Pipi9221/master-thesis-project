@@ -1,0 +1,8 @@
+{
+  "id": "O01",
+  "family": "BUG-INDIRECT-GOTO-CRASH",
+  "bucket": "overlap_risk",
+  "counted_in_strict": "no",
+  "category": "fatal_overlap_risk",
+  "report_path": "$DG_REPO/reports/fatal/BUG-INDIRECT-GOTO-CRASH.md"
+}

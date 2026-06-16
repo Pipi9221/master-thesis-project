@@ -1,0 +1,8 @@
+{
+  "id": "U05",
+  "family": "BUG-CONSTRUCTOR-INIT-DROPPED",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "precision_correctness",
+  "report_path": "$DG_REPO/reports/precision/BUG-CONSTRUCTOR-INIT-DROPPED.md"
+}

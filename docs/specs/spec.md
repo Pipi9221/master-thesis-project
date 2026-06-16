@@ -4,7 +4,7 @@
 
 本方案按“科研实验原型”而不是“工程平台”来设计。核心目标不是统一所有工具实现，而是建立一套可复现实验协议：`seed -> MR 构造 -> same criterion -> slicing -> oracle -> violation -> confirmation`。
 
-## 当前实现状态（2026-03-30）
+## 当前实现状态（2026-06-16）
 
 当前 `project` 目录里的四个 MR 已经形成了可运行的统一实验入口，区别主要在 relation 构造阶段，而不是顶层使用方式。
 
@@ -15,11 +15,38 @@
 | `MR3` | 已落地，走 AST 插入器 | 已落地，`Frama` / `dg` 都可运行 | 已落地，`pipeline.run_experiment` 可直接串起来 | 已搭建完成 |
 | `MR4` | 不需要 mutant 构造 | 已落地，`Frama` / `dg` 都可运行 | 已落地，`pipeline.run_experiment` 可直接串起来 | 已搭建完成 |
 
-换句话说，当前真实状态不是“只有 `MR2/MR3` 有代码”，而是：
+**种子源状态：**
+
+| 种子源 | 描述 | 状态 |
+| --- | --- | --- |
+| `csmith` | Csmith 模糊生成 C 程序 | 已落地 |
+| `creal` | Creal 语义保持种子/突变体对（仅 MR1） | 已落地 |
+| `llm_files` | 从目录读取预生成的 LLM 种子文件 | 已落地 |
+| `llm_online` | 在线调用外部 LLM 命令生成种子程序 | **新增** |
+
+**LLM 在线种子筛选管道（§4.1.2）：**
+
+新增 `--seed-source llm_online` 支持完整的种子筛选管道：
+1. **提示词生成**：按 MR + 主题维度 + 附录 B 模板组合提示词
+2. **LLM 调用**：通过外部命令（子进程模式）调用 LLM 生成候选 C 程序
+3. **编译检查**：`clang -fsyntax-only` 语法验证
+4. **运行可用性检查**：编译为可执行文件并验证 exit code 0
+5. **语义特征筛选**：基于 5 个主题维度的正则模式匹配，验证程序覆盖目标 C 语言特性
+6. **人工复核标记**：所有通过筛选的种子 `review_status` 为 `pending`，支持后续 `approved/rejected` 标记
+7. **重试机制**：每个种子单个筛选阶段失败可自动重试（默认 3 次）
+
+**MR2/MR3 构造层增强：**
+
+- MR2/MR3 构造失败不再直接 `SystemExit`，改为自动重试循环（MR2 默认 20 次，MR3 默认 30 次）
+- 构造后增加运行时行为检查（编译突变体并执行，验证 exit code 0）
+- 增加种子-突变体行为等价性前提检查（编译运行双方，比较 exit code 和 stdout）
+
+换句话说，当前真实状态不是”只有 `MR2/MR3` 有代码”，而是：
 
 - `MR1` 到 `MR4` 都已经有可运行实现
 - `MR1` 到 `MR4` 都已经接入统一总入口
 - 当前顶层差异主要是 `MR1` 保持 Creal 特例、`MR4` 不产 mutant
+- LLM 在线种子生成与筛选管道已实现并集成入 `generate_mutants` 入口
 
 ## 当前统一边界
 
@@ -47,7 +74,7 @@
 - `MR4`：不需要构造突变体，单独实现切片协议比较
 
 这意味着新项目不需要一开始就解决“全 MR 统一 AST 化”的高风险问题。  
-推荐技术路线：`Clang LibTooling + C++ source-to-source mutation`，风格上参考 SA_Bugs，但不要建立在当前仓库的 Python 封装之上。当前仓库虽然有接入口，如 [sa_bugs_mutator.py](/d:/pipi922/Desktop/master-thesis/Slicing/mutation_generators/sa_bugs_mutator.py) 和 [README.md](/d:/pipi922/Desktop/master-thesis/Slicing/README.md)，但 `static_mutate` 本体并不在当前工作区，且现有封装没有 MR 感知的选点和插入规则，不适合作为后续新项目的实现基线。
+推荐技术路线：`Clang LibTooling + C++ source-to-source mutation`，风格上参考 SA_Bugs，但不要建立在当前仓库的 Python 封装之上。当前仓库虽然有接入口，如 `sa_bugs_mutator.py` 和 `README.md`（位于上游 Slicing 仓库的 `mutation_generators/` 目录），但 `static_mutate` 本体并不在当前工作区，且现有封装没有 MR 感知的选点和插入规则，不适合作为后续新项目的实现基线。
 
 ## Key Changes
 
@@ -103,6 +130,8 @@
 - `generate_mutants --mr MR1 --seed-source creal --output-dir out/`
 - `generate_mutants --mr MR2 --seed-source csmith|llm_files --mr-ast-tool <tool> --output-dir out/`
 - `generate_mutants --mr MR3 --seed-source csmith|llm_files --mr-ast-tool <tool> --output-dir out/`
+- `generate_mutants --mr MR2 --seed-source llm_online --llm-command "<cmd>" --llm-feature-focus "<focus>" --mr-ast-tool <tool> --output-dir out/`
+- `generate_mutants --mr MR4 --seed-source llm_online --llm-command "<cmd>" --output-dir out/`
 - `run_oracle --tool frama --mr MR1 --seed seed.c --mutant mutant.c --criteria criteria.json --mutation-meta mutation_meta.json`
 - `run_oracle --tool frama --mr MR2 --seed seed.c --mutant mutant.c --criteria criteria.json --mutation-meta mutation_meta.json`
 - `run_oracle --tool dg --mr MR3 --seed seed.c --mutant mutant.c --criteria criteria.json --mutation-meta mutation_meta.json`

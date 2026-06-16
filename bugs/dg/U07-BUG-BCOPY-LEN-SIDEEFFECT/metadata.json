@@ -1,0 +1,8 @@
+{
+  "id": "U07",
+  "family": "BUG-BCOPY-LEN-SIDEEFFECT",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "library_side_effect_modeling",
+  "report_path": "$DG_REPO/reports/precision/BUG-BCOPY-LEN-SIDEEFFECT.md"
+}

@@ -71,6 +71,15 @@ def judge_value_equivalence(
         if payload.get("missing")
     ]
     if missing_variables:
+        consistent = _check_consistent_slice_removal(value_comparisons, missing_variables)
+        if consistent:
+            return JudgeDecision(
+                status=OracleStatus.PASS,
+                reason="consistent_criterion_removal",
+                judge_id=judge_id,
+                summary="Both slices removed the criterion variable(s); full-program values match.",
+                details={"consistent_removal": missing_variables},
+            )
         return JudgeDecision(
             status=OracleStatus.ERROR,
             reason="missing_observed_values",
@@ -98,6 +107,31 @@ def judge_value_equivalence(
         judge_id=judge_id,
         summary="Observed values are consistent across all compared programs.",
     )
+
+
+def _check_consistent_slice_removal(
+    value_comparisons: dict[str, dict[str, object]],
+    missing_variables: list[str],
+) -> bool:
+    NOT_FOUND = "not_found"
+    for variable in missing_variables:
+        comp = value_comparisons[variable]
+        full_original = comp.get("original")
+        full_mutant = comp.get("mutant")
+        slice_original = comp.get("original_slice")
+        slice_mutant = comp.get("mutant_slice")
+
+        full_ok = (
+            full_original != NOT_FOUND
+            and full_mutant != NOT_FOUND
+            and str(full_original) == str(full_mutant)
+        )
+        slices_both_missing = (
+            slice_original == NOT_FOUND and slice_mutant == NOT_FOUND
+        )
+        if not (full_ok and slices_both_missing):
+            return False
+    return True
 
 
 def judge_set_equivalence(

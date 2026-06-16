@@ -1,0 +1,8 @@
+{
+  "id": "N01",
+  "family": "CSMITH-CONSTEXPR-MISSING-VALUE",
+  "bucket": "newly_confirmed",
+  "counted_in_strict": "yes",
+  "category": "crash",
+  "note": "ConstantExpr pointer-compare missing-value crash family"
+}

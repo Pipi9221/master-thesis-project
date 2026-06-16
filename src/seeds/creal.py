@@ -8,38 +8,15 @@ from pathlib import Path
 from .base import SeedSource
 from .models import SeedCase
 
-DEFAULT_CREAL_SCRIPT_CANDIDATES = (
-    Path("/home/cyuan/projects/Creal/creal.py"),
-    Path("/root/Creal/creal.py"),
-)
-
-DEFAULT_CSMITH_HOME_CANDIDATES = (
-    Path("/opt/csmith-home"),
-)
-
-
 def resolve_default_creal_script() -> str:
     env_value = os.environ.get("CREAL_SCRIPT", "").strip()
     if env_value:
         return env_value
-
-    for candidate in DEFAULT_CREAL_SCRIPT_CANDIDATES:
-        if candidate.is_file():
-            return candidate.as_posix()
     return ""
 
 
 def resolve_default_csmith_home() -> str:
-    env_value = os.environ.get("CSMITH_HOME", "").strip()
-    if env_value:
-        return env_value
-
-    for candidate in DEFAULT_CSMITH_HOME_CANDIDATES:
-        if (candidate / "include/csmith.h").is_file() and (
-            candidate / "bin/csmith"
-        ).is_file():
-            return candidate.as_posix()
-    return ""
+    return os.environ.get("CSMITH_HOME", "").strip()
 
 
 class CrealMr1SeedSource(SeedSource):
@@ -91,36 +68,45 @@ class CrealMr1SeedSource(SeedSource):
         temp_root = output_dir / ".creal_tmp"
         temp_root.mkdir(parents=True, exist_ok=True)
 
+        max_attempts = 5
+
         cases: list[SeedCase] = []
         for index in range(self._count):
             run_id = f"creal_{index + 1:04d}"
-            run_dir = temp_root / run_id
-            if run_dir.exists():
-                shutil.rmtree(run_dir)
-            run_dir.mkdir(parents=True, exist_ok=True)
-
-            completed = subprocess.run(
-                self.build_command(run_dir),
-                check=False,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="ignore",
-                env=self.build_environment(),
-            )
-            if completed.returncode != 0:
-                raise RuntimeError(
-                    f"creal failed for {run_id}: {completed.stderr.strip()}"
-                )
-
-            seed_src, mutant_src = self.find_seed_and_mutant(run_dir)
-            if seed_src is None or mutant_src is None:
-                raise RuntimeError(
-                    f"creal did not emit both seed and mutant for {run_id}"
-                )
-
             case_dir = output_dir / run_id
             case_dir.mkdir(parents=True, exist_ok=True)
+
+            seed_src = None
+            mutant_src = None
+            last_stderr = ""
+
+            for attempt in range(max_attempts):
+                run_dir = temp_root / run_id
+                if run_dir.exists():
+                    shutil.rmtree(run_dir)
+                run_dir.mkdir(parents=True, exist_ok=True)
+
+                completed = subprocess.run(
+                    self.build_command(run_dir),
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="ignore",
+                    env=self.build_environment(),
+                )
+                last_stderr = completed.stderr.strip()
+
+                seed_src, mutant_src = self.find_seed_and_mutant(run_dir)
+                if seed_src is not None and mutant_src is not None:
+                    break
+
+            if seed_src is None or mutant_src is None:
+                raise RuntimeError(
+                    f"creal did not emit both seed and mutant for {run_id} "
+                    f"after {max_attempts} attempts: {last_stderr}"
+                )
+
             shutil.copyfile(seed_src, case_dir / "seed.c")
             shutil.copyfile(mutant_src, case_dir / "mutant.c")
             shutil.rmtree(run_dir)

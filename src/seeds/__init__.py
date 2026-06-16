@@ -6,17 +6,78 @@ from .creal import (
 )
 from .criteria import choose_criterion_variable, write_criteria_file
 from .csmith import CSmithSeedSource
+from .llm_feature_checker import (
+    TOPIC_PATTERNS,
+    FeatureCheckResult,
+    check_semantic_features,
+    summarize_features,
+)
 from .llm_files import LLMFileSeedSource
-from .models import SeedCase
+from .llm_online import LlmOnlineConfig, LlmOnlineSeedSource
+from .llm_prompts import (
+    BASE_PROMPT_TEMPLATE,
+    MR_SUPPLEMENT_CONSTRAINTS,
+    TOPIC_DIMENSIONS,
+    TOPIC_KEYS,
+    PromptTemplate,
+    build_prompt,
+    compute_prompt_hash,
+    get_topic_features,
+    get_topic_label,
+    get_topic_target_analysis,
+    render_prompt_file,
+)
+from .models import SeedCase, read_review_status, update_review_status
+from .smart_criteria import (
+    VariableUsage,
+    analyze_dependencies,
+    detect_variable_usage,
+    detect_multiple_variables,
+    find_injected_functions,
+    find_variables_in_function_calls,
+    find_variables_near_injections,
+    fix_printf_va_calls,
+    inject_printf_observations,
+    rank_variables,
+)
 
 __all__ = [
     "SeedCase",
     "SeedSource",
+    "update_review_status",
+    "read_review_status",
     "CrealMr1SeedSource",
     "resolve_default_creal_script",
     "resolve_default_csmith_home",
     "CSmithSeedSource",
     "LLMFileSeedSource",
+    "LlmOnlineConfig",
+    "LlmOnlineSeedSource",
+    "TOPIC_PATTERNS",
+    "FeatureCheckResult",
+    "check_semantic_features",
+    "summarize_features",
+    "BASE_PROMPT_TEMPLATE",
+    "MR_SUPPLEMENT_CONSTRAINTS",
+    "TOPIC_DIMENSIONS",
+    "TOPIC_KEYS",
+    "PromptTemplate",
+    "build_prompt",
+    "compute_prompt_hash",
+    "get_topic_features",
+    "get_topic_label",
+    "get_topic_target_analysis",
+    "render_prompt_file",
     "choose_criterion_variable",
     "write_criteria_file",
+    "VariableUsage",
+    "analyze_dependencies",
+    "detect_variable_usage",
+    "detect_multiple_variables",
+    "find_injected_functions",
+    "find_variables_in_function_calls",
+    "find_variables_near_injections",
+    "fix_printf_va_calls",
+    "inject_printf_observations",
+    "rank_variables",
 ]

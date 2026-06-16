@@ -276,7 +276,7 @@ class FramaValueOracle:
                 request=request,
                 status=OracleStatus.PASS,
                 violation=False,
-                reason="no_value_mismatch",
+                reason=value_decision.reason,
                 judge_id=value_decision.judge_id,
                 retained_symbols=retained_decision.retained_symbols,
                 seed_slice=seed_slice,

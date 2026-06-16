@@ -5,6 +5,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from tests.support.wsl_paths import has_wsl_command, to_wsl_path
 
 
@@ -13,11 +15,18 @@ DEFAULT_AST_TOOL_BIN = str(PROJECT_ROOT / "tooling" / "build" / "mr_ast_tool")
 FIXTURE = PROJECT_ROOT / "tests" / "fixtures" / "site_discovery_seed.c"
 
 
+def _resolve_binary() -> str:
+    binary = os.environ.get("MR_AST_TOOL_BIN", DEFAULT_AST_TOOL_BIN)
+    if not Path(binary).is_file() and not binary.startswith("/mnt/"):
+        pytest.skip(
+            f"mr_ast_tool binary not found at {binary}. "
+            "Build it with: cmake -S tooling -B tooling/build && cmake --build tooling/build"
+        )
+    return binary
+
+
 def test_discover_sites_reports_main_function_boundaries() -> None:
-    binary = os.environ.get(
-        "MR_AST_TOOL_BIN",
-        DEFAULT_AST_TOOL_BIN,
-    )
+    binary = _resolve_binary()
     default_driver = "wsl" if binary.startswith("/mnt/") and has_wsl_command() else "native"
     driver = os.environ.get("MR_AST_TOOL_DRIVER", default_driver)
     expected_seed = str(FIXTURE)

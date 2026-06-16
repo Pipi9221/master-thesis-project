@@ -1,0 +1,8 @@
+{
+  "id": "S04",
+  "family": "BUG-DBG-VALUE-CRASH",
+  "bucket": "already_submitted_upstream",
+  "counted_in_strict": "no",
+  "category": "fatal_upstream_related",
+  "report_path": "$DG_REPO/reports/fatal/BUG-DBG-VALUE-CRASH.md"
+}

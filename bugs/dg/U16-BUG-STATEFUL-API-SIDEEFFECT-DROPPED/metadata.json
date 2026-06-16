@@ -1,0 +1,8 @@
+{
+  "id": "U16",
+  "family": "BUG-STATEFUL-API-SIDEEFFECT-DROPPED",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "stateful_api_effects",
+  "report_path": "$DG_REPO/reports/precision/BUG-STATEFUL-API-SIDEEFFECT-DROPPED.md"
+}

@@ -16,6 +16,16 @@ SEED = PROJECT_ROOT / "tests" / "fixtures" / "mr3_seed.c"
 CRITERIA = PROJECT_ROOT / "tests" / "fixtures" / "mr3_criteria.json"
 
 
+def _resolve_binary() -> str:
+    binary = os.environ.get("MR_AST_TOOL_BIN", DEFAULT_AST_TOOL_BIN)
+    if not Path(binary).is_file() and not binary.startswith("/mnt/"):
+        pytest.skip(
+            f"mr_ast_tool binary not found at {binary}. "
+            "Build it with: cmake -S tooling -B tooling/build && cmake --build tooling/build"
+        )
+    return binary
+
+
 @pytest.mark.parametrize(
     ("rng_seed", "expected_pattern", "expected_snippets", "expected_symbols"),
     [
@@ -86,10 +96,7 @@ def test_mutate_mr3_selects_deterministic_phase1_pattern(
 
 
 def _run_mutate(*, tmp_path: Path, rng_seed: int) -> subprocess.CompletedProcess[str]:
-    binary = os.environ.get(
-        "MR_AST_TOOL_BIN",
-        DEFAULT_AST_TOOL_BIN,
-    )
+    binary = _resolve_binary()
     default_driver = "wsl" if binary.startswith("/mnt/") and has_wsl_command() else "native"
     driver = os.environ.get("MR_AST_TOOL_DRIVER", default_driver)
 

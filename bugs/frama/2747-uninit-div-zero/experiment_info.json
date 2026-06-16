@@ -1,0 +1,127 @@
+{
+  "experiment_id": 26,
+  "timestamp": "2025-11-13T00:38:33.386102",
+  "source_file": "P6I3IZ_seed.c",
+  "mutant_file": "P6I3IZ_seed_syn0.c",
+  "slice_criteria": [
+    "g_6",
+    "g_106",
+    "g_109",
+    "g_9",
+    "g_13",
+    "g_71",
+    "g_14",
+    "g_158",
+    "g_161",
+    "g_221"
+  ],
+  "actual_sliced_variable": "g_6",
+  "global_variables": [
+    "g_6",
+    "g_106",
+    "g_109",
+    "g_9",
+    "g_13",
+    "g_71",
+    "g_113",
+    "g_14",
+    "g_158",
+    "g_159",
+    "g_161",
+    "g_221",
+    "g_239",
+    "g_248",
+    "g_312",
+    "g_848",
+    "g_84",
+    "g_244",
+    "g_762",
+    "g_876"
+  ],
+  "variable_comparisons": {
+    "g_6": {
+      "original": "-9",
+      "mutant": "-9",
+      "original_slice": "未找到",
+      "mutant_slice": "-9"
+    },
+    "g_106": {
+      "original": "-1",
+      "mutant": "-1",
+      "original_slice": "未找到",
+      "mutant_slice": "-1"
+    },
+    "g_109": {
+      "original": "1369427775",
+      "mutant": "1369427775",
+      "original_slice": "未找到",
+      "mutant_slice": "1369440255"
+    },
+    "g_9": {
+      "original": "212465871",
+      "mutant": "212465871",
+      "original_slice": "未找到",
+      "mutant_slice": "212465871"
+    },
+    "g_13": {
+      "original": "1",
+      "mutant": "1",
+      "original_slice": "未找到",
+      "mutant_slice": "1"
+    },
+    "g_71": {
+      "original": "7",
+      "mutant": "7",
+      "original_slice": "未找到",
+      "mutant_slice": "7"
+    },
+    "g_14": {
+      "original": "136",
+      "mutant": "136",
+      "original_slice": "未找到",
+      "mutant_slice": "136"
+    },
+    "g_158": {
+      "original": "-1",
+      "mutant": "-1",
+      "original_slice": "未找到",
+      "mutant_slice": "-1"
+    },
+    "g_161": {
+      "original": "4201581680",
+      "mutant": "4201581680",
+      "original_slice": "未找到",
+      "mutant_slice": "4201581680"
+    },
+    "g_221": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "未找到",
+      "mutant_slice": "0"
+    }
+  },
+  "failure_info": {
+    "source_slicing": {
+      "status": "success"
+    },
+    "mutant_slicing": {
+      "status": "success"
+    },
+    "source_compilation": {
+      "status": "success"
+    },
+    "mutant_compilation": {
+      "status": "success"
+    },
+    "source_runtime": {
+      "status": "failed",
+      "exit_code": -8,
+      "signal": "SIGFPE",
+      "signal_num": 8,
+      "error": "Program exited with code -8"
+    },
+    "mutant_runtime": {
+      "status": "success"
+    }
+  }
+}

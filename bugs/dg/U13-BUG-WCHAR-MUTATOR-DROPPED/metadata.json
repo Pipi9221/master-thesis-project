@@ -1,0 +1,8 @@
+{
+  "id": "U13",
+  "family": "BUG-WCHAR-MUTATOR-DROPPED",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "wide_char_api_effect_tracking",
+  "report_path": "$DG_REPO/reports/precision/BUG-WCHAR-MUTATOR-DROPPED.md"
+}

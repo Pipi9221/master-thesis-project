@@ -6,6 +6,8 @@ import shlex
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from tests.support.wsl_paths import to_wsl_path
 
 
@@ -16,6 +18,16 @@ DEFAULT_AST_TOOL_BIN = str(PROJECT_ROOT / "tooling" / "build" / "mr_ast_tool")
 LLM_SEED_DIR = PROJECT_ROOT / "tests" / "fixtures" / "llm_seeds"
 FAKE_CREAL = PROJECT_ROOT / "tests" / "fixtures" / "fake_creal.py"
 FAKE_CSMITH = PROJECT_ROOT / "tests" / "fixtures" / "fake_csmith.py"
+
+
+def _resolve_tool_bin() -> str:
+    binary = os.environ.get("MR_AST_TOOL_BIN", DEFAULT_AST_TOOL_BIN)
+    if not Path(binary).is_file() and not binary.startswith("/mnt/"):
+        pytest.skip(
+            f"mr_ast_tool binary not found at {binary}. "
+            "Build it with: cmake -S tooling -B tooling/build && cmake --build tooling/build"
+        )
+    return binary
 
 
 def test_generate_mutants_pipeline_supports_creal_mr1(tmp_path: Path) -> None:
@@ -68,8 +80,9 @@ def test_generate_mutants_pipeline_supports_creal_mr1(tmp_path: Path) -> None:
 
 
 def test_generate_mutants_pipeline_resolves_installed_creal_defaults(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch
 ) -> None:
+    monkeypatch.setenv("CREAL_SCRIPT", str(FAKE_CREAL))
     completed = _run_pipeline(
         [
             "--seed-source",
@@ -92,6 +105,7 @@ def test_generate_mutants_pipeline_resolves_installed_creal_defaults(
 
 
 def test_generate_mutants_pipeline_supports_llm_seed_files(tmp_path: Path) -> None:
+    _resolve_tool_bin()  # skip if mr_ast_tool not built
     completed = _run_pipeline(
         [
             "--seed-source",
@@ -123,7 +137,7 @@ def test_generate_mutants_pipeline_supports_llm_seed_files(tmp_path: Path) -> No
     assert criteria["variables"] == ["x"]
 
     mutant = (case_dir / "mutant.c").read_text(encoding="utf-8")
-    assert "if ((1 == 0) && (x >= 0)) {" in mutant
+    assert "if (0) {" in mutant  # dead-code wrapper pattern
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["seed_source"] == "llm_files"
@@ -135,6 +149,7 @@ def test_generate_mutants_pipeline_supports_llm_seed_files(tmp_path: Path) -> No
 
 
 def test_generate_mutants_pipeline_supports_csmith_seeds(tmp_path: Path) -> None:
+    _resolve_tool_bin()  # skip if mr_ast_tool not built
     completed = _run_pipeline(
         [
             "--seed-source",
@@ -315,10 +330,7 @@ def test_generate_mutants_pipeline_requires_ast_tool_for_mr2(
 
 
 def _run_pipeline(arguments: list[str]) -> subprocess.CompletedProcess[str]:
-    tool_bin = os.environ.get(
-        "MR_AST_TOOL_BIN",
-        DEFAULT_AST_TOOL_BIN,
-    )
+    tool_bin = os.environ.get("MR_AST_TOOL_BIN", DEFAULT_AST_TOOL_BIN)
     command = [
         "bash",
         "-lc",

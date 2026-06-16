@@ -1,0 +1,8 @@
+{
+  "id": "S05",
+  "family": "BUG-NORETURN-UNREACHABLE",
+  "bucket": "already_submitted_upstream",
+  "counted_in_strict": "no",
+  "category": "precision_upstream_related",
+  "report_path": "$DG_REPO/reports/precision/BUG-NORETURN-UNREACHABLE.md"
+}

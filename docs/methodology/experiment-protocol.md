@@ -44,4 +44,4 @@ Unification target:
 
 Related comparison note:
 
-- see [sa-bugs-comparison.md](/d:/pipi922/Desktop/master-thesis/project/docs/methodology/sa-bugs-comparison.md) for a workflow comparison between `SA_Bugs` and the current `project`
+- see [sa-bugs-comparison.md](./sa-bugs-comparison.md) for a workflow comparison between `SA_Bugs` and the current `project`

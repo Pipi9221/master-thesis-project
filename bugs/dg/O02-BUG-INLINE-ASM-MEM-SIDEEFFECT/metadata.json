@@ -1,0 +1,8 @@
+{
+  "id": "O02",
+  "family": "BUG-INLINE-ASM-MEM-SIDEEFFECT",
+  "bucket": "overlap_risk",
+  "counted_in_strict": "no",
+  "category": "precision_overlap_risk",
+  "report_path": "$DG_REPO/reports/precision/BUG-INLINE-ASM-MEM-SIDEEFFECT.md"
+}

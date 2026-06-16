@@ -1,0 +1,8 @@
+{
+  "id": "U02",
+  "family": "BUG-STRNCAT-SIDEEFFECT",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "precision_correctness",
+  "report_path": "$DG_REPO/reports/precision/BUG-STRNCAT-SIDEEFFECT.md"
+}

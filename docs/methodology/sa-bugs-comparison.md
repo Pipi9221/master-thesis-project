@@ -11,11 +11,11 @@
 
 - 上游仓库：[SA_Bugs](https://github.com/Geoffrey1014/SA_Bugs)
 - 当前工作区参考快照：
-  - [tools.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/tools.py)
-  - [config.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/config.py)
-  - [fuzz_sa_fp.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/fuzz_sa_fp.py)
-  - [fuzz_sa_fn.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/fuzz_sa_fn.py)
-  - [fuzz_sa_eval.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/fuzz_sa_eval.py)
+  - [tools.py]($PROJECT/artifacts/SA_Bugs_ref/tools.py)
+  - [config.py]($PROJECT/artifacts/SA_Bugs_ref/config.py)
+  - [fuzz_sa_fp.py]($PROJECT/artifacts/SA_Bugs_ref/fuzz_sa_fp.py)
+  - [fuzz_sa_fn.py]($PROJECT/artifacts/SA_Bugs_ref/fuzz_sa_fn.py)
+  - [fuzz_sa_eval.py]($PROJECT/artifacts/SA_Bugs_ref/fuzz_sa_eval.py)
 
 ## 2. SA_Bugs 的总体组织方式
 
@@ -30,7 +30,7 @@
 - `fuzz-eval`
   - 面向 `__analyzer_eval` / `clang_analyzer_eval` 语义检查
 
-总控入口是 [tools.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/tools.py#L656)，通过子命令把实验拆成多个阶段：
+总控入口是 [tools.py]($PROJECT/artifacts/SA_Bugs_ref/tools.py#L656)，通过子命令把实验拆成多个阶段：
 
 - 创建工作目录
 - 并发拉起 fuzz worker
@@ -64,7 +64,7 @@
 
 ### 3.1 批次创建
 
-[create_fuzzing_place](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/tools.py#L115) 会：
+[create_fuzzing_place]($PROJECT/artifacts/SA_Bugs_ref/tools.py#L115) 会：
 
 - 创建带时间戳的批次目录
 - 创建多个 `fuzz_i/` 子目录
@@ -84,10 +84,10 @@
 
 可参考：
 
-- [analyze_with_gcc](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/fuzz_sa_fp.py#L18)
-- [analyze_with_clang](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/fuzz_sa_fp.py#L48)
-- [analyze_with_pinpoint](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/fuzz_sa_fp.py#L76)
-- [generate_code](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/fuzz_sa_eval.py#L194)
+- [analyze_with_gcc]($PROJECT/artifacts/SA_Bugs_ref/fuzz_sa_fp.py#L18)
+- [analyze_with_clang]($PROJECT/artifacts/SA_Bugs_ref/fuzz_sa_fp.py#L48)
+- [analyze_with_pinpoint]($PROJECT/artifacts/SA_Bugs_ref/fuzz_sa_fp.py#L76)
+- [generate_code]($PROJECT/artifacts/SA_Bugs_ref/fuzz_sa_eval.py#L194)
 
 ### 3.3 后处理和筛选
 
@@ -102,13 +102,13 @@
 
 对应入口：
 
-- [check_reachable](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/tools.py#L170)
-- [gen_reduce](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/tools.py#L414)
-- [run_reduce](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/tools.py#L543)
+- [check_reachable]($PROJECT/artifacts/SA_Bugs_ref/tools.py#L170)
+- [gen_reduce]($PROJECT/artifacts/SA_Bugs_ref/tools.py#L414)
+- [run_reduce]($PROJECT/artifacts/SA_Bugs_ref/tools.py#L543)
 
 ### 3.4 配置集中化
 
-环境依赖、工具路径、超时、checker 列表基本都集中在 [config.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/config.py#L4)：
+环境依赖、工具路径、超时、checker 列表基本都集中在 [config.py]($PROJECT/artifacts/SA_Bugs_ref/config.py#L4)：
 
 - CSmith 头文件路径
 - 编译器与 analyzer 路径
@@ -189,7 +189,7 @@
 
 ### 5.4 工程健壮性一般
 
-参考快照里的 [config.py](/d:/pipi922/Desktop/master-thesis/project/artifacts/SA_Bugs_ref/config.py#L18) 甚至保留了冲突标记，说明它更偏实验脚本，不适合直接作为我们项目结构的基线。
+参考快照里的 [config.py]($PROJECT/artifacts/SA_Bugs_ref/config.py#L18) 甚至保留了冲突标记，说明它更偏实验脚本，不适合直接作为我们项目结构的基线。
 
 ## 6. 与当前 project 的结构对照
 

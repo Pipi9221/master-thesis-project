@@ -6,6 +6,8 @@ import shlex
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from tests.support.wsl_paths import bash_command, to_wsl_path
 
 
@@ -16,9 +18,12 @@ DEFAULT_AST_TOOL_BIN = str(PROJECT_ROOT / "tooling" / "build" / "mr_ast_tool")
 LLM_SEED_DIR = PROJECT_ROOT / "tests" / "fixtures" / "llm_seeds"
 FAKE_CREAL = PROJECT_ROOT / "tests" / "fixtures" / "fake_creal.py"
 FAKE_FRAMA = PROJECT_ROOT / "tests" / "fixtures" / "fake_frama.py"
+DG_BINARY = os.environ.get("DG_LLVM_SLICER_BINARY", "")
 
 
 def test_run_experiment_generates_mutants_and_runs_both_oracles(tmp_path: Path) -> None:
+    if not DG_BINARY:
+        pytest.skip("DG_LLVM_SLICER_BINARY env var not set")
     tool_bin = os.environ.get(
         "MR_AST_TOOL_BIN",
         DEFAULT_AST_TOOL_BIN,
@@ -37,7 +42,7 @@ def test_run_experiment_generates_mutants_and_runs_both_oracles(tmp_path: Path) 
             f"--output-dir {shlex.quote(to_wsl_path(tmp_path))} "
             "--frama-binary python3 "
             f"--frama-args {shlex.quote(to_wsl_path(FAKE_FRAMA))} "
-            "--dg-binary /home/cyuan/projects/dg/build/tools/llvm-slicer "
+            f"--dg-binary {DG_BINARY} "
             "--dg-clang-binary clang-14 "
             "--dg-llvm-dis-binary llvm-dis-14"
         )
@@ -102,6 +107,8 @@ def test_run_experiment_supports_mr1_with_frama(tmp_path: Path) -> None:
 
 
 def test_run_experiment_prefers_tool_over_tools_for_mr3(tmp_path: Path) -> None:
+    if not DG_BINARY:
+        pytest.skip("DG_LLVM_SLICER_BINARY env var not set")
     tool_bin = os.environ.get(
         "MR_AST_TOOL_BIN",
         DEFAULT_AST_TOOL_BIN,
@@ -119,7 +126,7 @@ def test_run_experiment_prefers_tool_over_tools_for_mr3(tmp_path: Path) -> None:
             "--tools frama,dg "
             "--rng-seed-base 31 "
             f"--output-dir {shlex.quote(to_wsl_path(tmp_path))} "
-            "--dg-binary /home/cyuan/projects/dg/build/tools/llvm-slicer "
+            f"--dg-binary {DG_BINARY} "
             "--dg-clang-binary clang-14 "
             "--dg-llvm-dis-binary llvm-dis-14"
         )
@@ -189,13 +196,15 @@ def test_run_experiment_supports_mr4_with_dg(tmp_path: Path) -> None:
             "--seed-dir",
             to_wsl_path(LLM_SEED_DIR),
             "--dg-binary",
-            "/home/cyuan/projects/dg/build/tools/llvm-slicer",
+            DG_BINARY,
             "--dg-clang-binary",
             "clang-14",
             "--dg-llvm-dis-binary",
             "llvm-dis-14",
         ],
     )
+    if not DG_BINARY:
+        pytest.skip("DG_LLVM_SLICER_BINARY env var not set")
 
     assert completed.returncode == 0, completed.stderr
     experiment_manifest = json.loads(

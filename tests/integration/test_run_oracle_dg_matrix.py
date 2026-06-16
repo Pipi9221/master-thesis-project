@@ -1,19 +1,24 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
+
+import pytest
 
 from tests.support.wsl_paths import bash_command, to_wsl_path
 
 
-DG_BINARY = "/home/cyuan/projects/dg/build/tools/llvm-slicer"
+DG_BINARY = os.environ.get("DG_LLVM_SLICER_BINARY", "")
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_ROOT_WSL = to_wsl_path(PROJECT_ROOT)
 SRC_ROOT_WSL = to_wsl_path(PROJECT_ROOT / "src")
 
 
 def test_run_oracle_dg_mr1_reports_pass_for_equivalent_mutant(tmp_path: Path) -> None:
+    if not DG_BINARY:
+        pytest.skip("DG_LLVM_SLICER_BINARY env var not set")
     seed_path = tmp_path / "seed.c"
     mutant_path = tmp_path / "mutant.c"
     criteria_path = tmp_path / "criteria.json"
@@ -112,6 +117,8 @@ def test_run_oracle_dg_mr1_reports_pass_for_equivalent_mutant(tmp_path: Path) ->
 
 
 def test_run_oracle_dg_mr3_runs_retained_symbol_path(tmp_path: Path) -> None:
+    if not DG_BINARY:
+        pytest.skip("DG_LLVM_SLICER_BINARY env var not set")
     seed_path = tmp_path / "seed.c"
     mutant_path = tmp_path / "mutant.c"
     criteria_path = tmp_path / "criteria.json"
@@ -206,6 +213,8 @@ def test_run_oracle_dg_mr3_runs_retained_symbol_path(tmp_path: Path) -> None:
 
 
 def test_run_oracle_dg_mr4_reports_pass_for_matching_instruction_sets(tmp_path: Path) -> None:
+    if not DG_BINARY:
+        pytest.skip("DG_LLVM_SLICER_BINARY env var not set")
     seed_path = tmp_path / "seed.c"
     criteria_path = tmp_path / "criteria.json"
     output_dir = tmp_path / "oracle-out"

@@ -44,10 +44,11 @@ Current project-level split:
 Current runtime assumption:
 
 - the active execution path is Linux-first and currently runs in WSL
-- the pipeline supports three seed-source families:
+- the pipeline supports four seed-source families:
   - `creal` for `MR1`
   - `csmith`
   - `llm_files` for pre-generated `.c` seeds
+  - `llm_online` for on-the-fly LLM seed generation with screening pipeline
 - `csmith` generation can be configured either by CLI flags or by Linux env:
   - `CSMITH_USER_OPTIONS`
   - `CSMITH_HOME`
@@ -59,11 +60,174 @@ Current runtime assumption:
   - `CLANG_BIN`
   - `CSMITH_INCLUDE_DIR`
 
-Current end-to-end entrypoint:
+## Quick verification
+
+Clone and verify the Python pipeline works (no external tools needed):
 
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
-PYTHONPATH=/mnt/d/pipi922/Desktop/master-thesis/project/src \
+git clone <repo-url> project
+cd project
+PYTHONPATH=src python3 -m pytest tests/ -q
+```
+
+Expected output when no external tools are installed:
+
+```
+225 passed, 8 skipped
+```
+
+The 8 skipped tests require one of:
+
+- `DG_LLVM_SLICER_BINARY` — path to `llvm-slicer` (set env var or build [DG](https://github.com/mchalupa/dg))
+- `mr_ast_tool` — build with `cmake -S tooling -B tooling/build && cmake --build tooling/build`
+
+After configuring external tools, all 233 tests pass.
+
+> **Note**: The core pipeline, all seed sources, and both oracle judges are pure Python
+> (standard library only, no `pip install` required). Actual slicing requires the external
+> tools listed in [Prerequisites](#prerequisites).
+
+## Prerequisites
+
+**Python**: ≥ 3.10 (standard library only, no `pip install` required).
+
+### Required external tools — by MR / Slicer combination
+
+| MR | Slicer | Required tools |
+|----|--------|----------------|
+| MR1 | Frama-C | Creal, Synthesizer, CSmith, Frama-C, gcc |
+| MR1 | DG | Creal, Synthesizer, CSmith, DG/llvm-slicer, Clang, llvm-dis, lli |
+| MR2 / MR3 | Frama-C | mr_ast_tool, Frama-C, CSmith |
+| MR2 / MR3 | DG | mr_ast_tool, DG/llvm-slicer, Clang, llvm-dis, CSmith |
+| MR4 | Frama-C | Frama-C |
+| MR4 | DG | DG/llvm-slicer, Clang, llvm-dis |
+
+### Tool installation
+
+#### Creal (MR1 seed/mutant generator)
+
+Creal wraps CSmith and Synthesizer to emit semantic-preserving seed/mutant pairs.
+
+- **Source**: included as a submodule/dependency of the thesis research context; contact the authors for access
+- **Requires**: Python 3, CSmith, Synthesizer
+- **Configure**: `export CREAL_SCRIPT=/path/to/creal/creal.py` or `--creal-script` flag
+- **Note**: Creal is a research prototype with intermittent failures; the pipeline retries up to 5 times per case
+
+#### CSmith (C program generator)
+
+- **Homepage**: <https://github.com/csmith-project/csmith>
+- **Install**:
+  ```bash
+  git clone https://github.com/csmith-project/csmith.git
+  cd csmith && cmake -S . -B build && cmake --build build
+  # make install or use directly from build directory
+  ```
+- **Configure**: `export CSMITH_HOME=/path/to/csmith` or `--csmith-home` flag
+- Header files must be accessible (default: `/usr/include/csmith`; override with `--csmith-include-dir`)
+
+#### Frama-C (C program slicer)
+
+- **Homepage**: <https://frama-c.com/>
+- **Install** (via OPAM, recommended):
+  ```bash
+  opam init
+  opam install frama-c
+  ```
+- **Binary**: `frama-c` (override with `--frama-binary`)
+- **Verify**: `frama-c --version`
+
+#### DG / llvm-slicer (LLVM IR slicer)
+
+- **Homepage**: <https://github.com/mchalupa/dg>
+- **Install**:
+  ```bash
+  git clone https://github.com/mchalupa/dg.git
+  cd dg && mkdir build && cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release
+  make -j$(nproc) llvm-slicer
+  ```
+- **Configure**: `export DG_LLVM_SLICER_BINARY=/path/to/dg/build/tools/llvm-slicer` or `--dg-binary` flag
+- **Also needed**: Clang ≥14, llvm-dis ≥14, lli ≥14 (for MR1 value observation)
+  - Ubuntu/Debian: `apt install clang-14 llvm-14-dev llvm-14`
+  - Override with `--dg-clang-binary`, `--dg-llvm-dis-binary`, `--dg-lli-binary`
+
+#### mr_ast_tool (MR2/MR3 AST mutator)
+
+- **Source**: `tooling/` directory in this repository
+- **Build**:
+  ```bash
+  cd $PROJECT
+  cmake -S tooling -B tooling/build -DCMAKE_BUILD_TYPE=Release
+  cmake --build tooling/build
+  ```
+- **Requires**: LLVM/Clang 14 development headers
+  - Ubuntu/Debian: `apt install libclang-14-dev llvm-14-dev`
+- **Binary**: `tooling/build/mr_ast_tool`
+- **Configure**: `export MR_AST_TOOL_BIN=$PROJECT/tooling/build/mr_ast_tool` or `--mr-ast-tool` flag
+
+#### Synthesizer (Creal dependency)
+
+- **Homepage**: <https://github.com/csmith-project/synthesizer>
+- **Install**:
+  ```bash
+  # Synthesizer is typically bundled with or referenced by Creal
+  git clone https://github.com/csmith-project/synthesizer.git
+  cd synthesizer && make
+  ```
+
+### LLM online seed generation (optional)
+
+Requires a local LLM CLI tool that accepts `--prompt-file` and `--output-file`.
+Configure via `--llm-command` template with `{prompt_file}` and `{output_file}` placeholders.
+
+### Configuration reference
+
+#### Frama-C flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--frama-binary` | `frama-c` | Path to Frama-C executable |
+| `--frama-args` | `""` | Extra args passed to frama-c before the input file |
+| `--compiler-binary` | `gcc` | C compiler for MR1 value oracle observation programs |
+| `--compiler-args` | `-Wall -Wextra` | Extra compiler flags for observation programs |
+| `--csmith-include-dir` | `/usr/include/csmith` | CSmith headers directory (needed for `-cpp-extra-args`) |
+
+#### DG / llvm-slicer flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--dg-binary` | `llvm-slicer` | Path to llvm-slicer (or set `DG_LLVM_SLICER_BINARY` env var) |
+| `--dg-clang-binary` | `clang-14` | Clang for seed→bitcode compilation |
+| `--dg-llvm-dis-binary` | `llvm-dis-14` | llvm-dis for disassembling sliced bitcode |
+| `--dg-lli-binary` | `lli-14` | lli for MR1 sliced program value observation |
+| `--dg-llvm-link-binary` | `llvm-link-14` | llvm-link for MR1 observation helper linkage |
+| `--dg-args` | `-annotate slice` | Extra args passed to llvm-slicer |
+| `--dg-native-compile-args` | `-O0 -Wall -Wextra` | Clang flags for native compilation |
+| `--dg-judge-mode` | `off` | `off` \| `hybrid` \| `required` — LLM-assisted judging |
+| `--dg-llm-judge-command` | `""` | Command template for LLM judge (`{bundle_json}` placeholder) |
+| `--dg-llm-prompt-version` | `v1` | Prompt version for LLM judge |
+
+#### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `CREAL_SCRIPT` | Path to `creal.py` (required for `--seed-source creal`) |
+| `CSMITH_HOME` | CSmith installation root |
+| `CSMITH_USER_OPTIONS` | Extra CSmith generation flags |
+| `DG_LLVM_SLICER_BINARY` | Path to `llvm-slicer` binary |
+| `MR_AST_TOOL_BIN` | Path to `mr_ast_tool` binary |
+
+See [CONFIG.md](./CONFIG.md) for detailed configuration guidance.
+
+## Usage examples
+
+In all examples below, replace `$PROJECT` with the absolute path to this directory.
+
+### MR1 via Creal + Frama-C
+
+```bash
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
 python3 -m pipeline.run_experiment \
   --tool frama \
   --seed-source creal \
@@ -75,45 +239,45 @@ python3 -m pipeline.run_experiment \
   --output-dir /tmp/mr-runs
 ```
 
-On the current thesis WSL setup, `MR1` can be run without explicitly passing
-`--creal-script` or `--csmith-home` when Creal is installed at
-`/home/cyuan/projects/Creal/creal.py` and the compatibility CSmith home is
-available at `/opt/csmith-home`. Explicit CLI flags and environment variables
-still take precedence when provided.
+If `CREAL_SCRIPT` is set in the environment, `--creal-script` can be omitted.
+
+### DG with CSmith seeds
 
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
-PYTHONPATH=/mnt/d/pipi922/Desktop/master-thesis/project/src \
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
 python3 -m pipeline.run_experiment \
   --tool dg \
   --seed-source csmith \
   --count 1 \
   --mr MR2 \
   --rng-seed-base 19 \
-  --mr-ast-tool /mnt/d/pipi922/Desktop/master-thesis/project/tooling/build/mr_ast_tool \
-  --dg-binary /home/cyuan/projects/dg/build/tools/llvm-slicer \
+  --mr-ast-tool $PROJECT/tooling/build/mr_ast_tool \
+  --dg-binary /path/to/llvm-slicer \
   --dg-clang-binary clang-14 \
   --dg-llvm-dis-binary llvm-dis-14 \
   --output-dir /tmp/mr-runs
 ```
 
+### MR4 with pre-generated LLM seeds
+
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
-PYTHONPATH=/mnt/d/pipi922/Desktop/master-thesis/project/src \
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
 python3 -m pipeline.run_experiment \
   --tool frama \
   --seed-source llm_files \
-  --seed-dir /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/llm_seeds \
+  --seed-dir $PROJECT/tests/fixtures/llm_seeds \
   --mr MR4 \
   --frama-binary frama-c \
   --output-dir /tmp/mr-runs
 ```
 
-Low-level slicing/oracle entrypoint:
+### Low-level slicing/oracle entrypoint (Frama-C)
 
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
-PYTHONPATH=/mnt/d/pipi922/Desktop/master-thesis/project/src \
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
 python3 -m pipeline.run_oracle \
   --tool frama \
   --mr MR2 \
@@ -126,9 +290,11 @@ python3 -m pipeline.run_oracle \
   --csmith-include-dir /usr/include/csmith
 ```
 
+### Low-level slicing/oracle entrypoint (DG)
+
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
-PYTHONPATH=/mnt/d/pipi922/Desktop/master-thesis/project/src \
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
 python3 -m pipeline.run_oracle \
   --tool dg \
   --mr MR2 \
@@ -137,33 +303,72 @@ python3 -m pipeline.run_oracle \
   --criteria /tmp/mr-runs/csmith_0001/criteria.json \
   --mutation-meta /tmp/mr-runs/csmith_0001/mutation_meta.json \
   --output-dir /tmp/mr-runs/csmith_0001/oracle-dg \
-  --dg-binary /home/cyuan/projects/dg/build/tools/llvm-slicer \
+  --dg-binary /path/to/llvm-slicer \
   --dg-clang-binary clang-14 \
   --dg-llvm-dis-binary llvm-dis-14
 ```
 
+### Mutant generation only (CSmith)
+
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
+cd $PROJECT
 export CSMITH_USER_OPTIONS="--no-bitfields --max-block-depth 3 --max-block-size 4 --max-pointer-depth 2"
-PYTHONPATH=/mnt/d/pipi922/Desktop/master-thesis/project/src \
+PYTHONPATH=$PROJECT/src \
 python3 -m pipeline.generate_mutants \
   --seed-source csmith \
   --count 1 \
   --mr MR2 \
   --rng-seed-base 41 \
-  --mr-ast-tool /mnt/d/pipi922/Desktop/master-thesis/project/tooling/build/mr_ast_tool \
+  --mr-ast-tool $PROJECT/tooling/build/mr_ast_tool \
   --output-dir /tmp/mr-runs
 ```
 
+### Mutant generation only (LLM pre-generated seeds)
+
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
-PYTHONPATH=/mnt/d/pipi922/Desktop/master-thesis/project/src \
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
 python3 -m pipeline.generate_mutants \
   --seed-source llm_files \
-  --seed-dir /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/llm_seeds \
+  --seed-dir $PROJECT/tests/fixtures/llm_seeds \
   --mr MR3 \
   --rng-seed-base 31 \
-  --mr-ast-tool /mnt/d/pipi922/Desktop/master-thesis/project/tooling/build/mr_ast_tool \
+  --mr-ast-tool $PROJECT/tooling/build/mr_ast_tool \
+  --output-dir /tmp/mr-runs
+```
+
+### LLM online seed generation (MR4, no mutant)
+
+```bash
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
+python3 -m pipeline.generate_mutants \
+  --seed-source llm_online \
+  --mr MR4 \
+  --count 5 \
+  --llm-command "python3 -m llm_cli --prompt-file {prompt_file} --output-file {output_file}" \
+  --llm-feature-focus "指针与数组" \
+  --llm-criteria "result" \
+  --llm-dependency-focus "局部变量链" \
+  --llm-max-retries 3 \
+  --llm-required-topics "c_language_features,pointer_array_data,criterion_export" \
+  --llm-min-topics 2 \
+  --output-dir /tmp/mr-runs
+```
+
+### LLM online with MR2/MR3 (requires --mr-ast-tool)
+
+```bash
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
+python3 -m pipeline.generate_mutants \
+  --seed-source llm_online \
+  --mr MR2 \
+  --count 3 \
+  --llm-command "python3 -m llm_cli --prompt-file {prompt_file} --output-file {output_file}" \
+  --llm-feature-focus "无关数据流" \
+  --mr-ast-tool $PROJECT/tooling/build/mr_ast_tool \
+  --max-retries 20 \
   --output-dir /tmp/mr-runs
 ```
 
@@ -176,6 +381,7 @@ python3 -m pipeline.generate_mutants \
 - `experiment/`: batch-oriented inputs, outputs, and per-MR runs
 - `tests/`: fixtures plus unit/integration coverage for the prototype
 - `artifacts/`: generated logs, reports, and replayable intermediate assets
+- `bugs/`: confirmed bug collection (17 Frama-C + 26 DG)
 
 Read the implementation contract first:
 

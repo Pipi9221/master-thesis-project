@@ -48,6 +48,16 @@ class ExperimentConfig:
     dg_judge_mode: str = "off"
     dg_llm_judge_command: str = ""
     dg_llm_prompt_version: str = "v1"
+    # LLM online seed source
+    llm_command: str = ""
+    llm_feature_focus: str = ""
+    llm_criteria: str = "keep"
+    llm_dependency_focus: str = ""
+    llm_max_retries: int = 3
+    llm_required_topics: str = ""
+    llm_min_topics: int = 2
+    no_run_check: bool = False
+    max_retries: int = 0
 
 
 def main() -> int:
@@ -101,6 +111,15 @@ def config_from_args(args: argparse.Namespace) -> ExperimentConfig:
         dg_judge_mode=args.dg_judge_mode,
         dg_llm_judge_command=args.dg_llm_judge_command,
         dg_llm_prompt_version=args.dg_llm_prompt_version,
+        llm_command=args.llm_command,
+        llm_feature_focus=args.llm_feature_focus,
+        llm_criteria=args.llm_criteria,
+        llm_dependency_focus=args.llm_dependency_focus,
+        llm_max_retries=args.llm_max_retries,
+        llm_required_topics=args.llm_required_topics,
+        llm_min_topics=args.llm_min_topics,
+        no_run_check=args.no_run_check,
+        max_retries=args.max_retries,
     )
 
 
@@ -222,6 +241,15 @@ def _load_or_generate_manifest(
             clang_binary=config.clang_binary,
             csmith_include_dir=config.csmith_include_dir,
             seed_dir=config.seed_dir,
+            llm_command=config.llm_command,
+            llm_feature_focus=config.llm_feature_focus,
+            llm_criteria=config.llm_criteria,
+            llm_dependency_focus=config.llm_dependency_focus,
+            llm_max_retries=config.llm_max_retries,
+            llm_required_topics=config.llm_required_topics,
+            llm_min_topics=config.llm_min_topics,
+            no_run_check=config.no_run_check,
+            max_retries=config.max_retries,
         )
     )
     return payload, config.output_dir
@@ -230,9 +258,15 @@ def _load_or_generate_manifest(
 def _selected_tools(config: ExperimentConfig) -> tuple[str, ...]:
     if config.tool:
         return (config.tool,)
-    if config.tools:
-        return config.tools
-    return ("frama",)
+    tools = config.tools if config.tools else ("frama",)
+    if config.seed_source == "csmith" and "dg" in tools:
+        tools = tuple(t for t in tools if t != "dg")
+        if tools:
+            print("Note: DG oracle skipped for csmith seed source (programs too large for bitcode compilation)")
+        else:
+            print("Warning: only DG was requested but csmith seeds are too large; running frama instead")
+            tools = ("frama",)
+    return tools
 
 
 def _resolve_case_artifact_path(
@@ -273,7 +307,7 @@ def _parse_args() -> argparse.Namespace:
 
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--manifest")
-    parser.add_argument("--seed-source", choices=("csmith", "llm_files", "creal"), default="csmith")
+    parser.add_argument("--seed-source", choices=("csmith", "llm_files", "llm_online", "creal"), default="csmith")
     parser.add_argument("--mr", choices=("MR1", "MR2", "MR3", "MR4"), default="MR2")
     parser.add_argument("--tool", choices=("frama", "dg"))
     parser.add_argument("--tools", default="frama,dg")
@@ -320,6 +354,15 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--dg-judge-mode", choices=("off", "hybrid", "required"), default="off")
     parser.add_argument("--dg-llm-judge-command", default="")
     parser.add_argument("--dg-llm-prompt-version", default="v1")
+    parser.add_argument("--llm-command", default="", help="LLM command template for llm_online (space-separated, supports {prompt_file} and {output_file} placeholders)")
+    parser.add_argument("--llm-feature-focus", default="", help="Feature focus topic dimension for LLM prompt")
+    parser.add_argument("--llm-criteria", default="keep", help="Criteria variable name for LLM prompt")
+    parser.add_argument("--llm-dependency-focus", default="", help="Dependency focus for LLM prompt")
+    parser.add_argument("--llm-max-retries", type=int, default=3, help="Max retries per LLM seed")
+    parser.add_argument("--llm-required-topics", default="", help="Comma-separated required topic dimensions")
+    parser.add_argument("--llm-min-topics", type=int, default=2, help="Minimum topic coverage for feature check")
+    parser.add_argument("--no-run-check", action="store_true", help="Skip runtime availability check for LLM seeds")
+    parser.add_argument("--max-retries", type=int, default=0, help="Max retries for MR2/MR3 mutation+compile (0=MR-specific defaults: MR2=20, MR3=30)")
     return parser.parse_args()
 
 

@@ -1,0 +1,28 @@
+id,group,item,recheck_bucket,root_cause_summary,explicit_unsupported_signal,paper_handling
+1,precision,BUG-MEMMOVE-SOURCE,confirmed_bug,"implemented memmove path still loses required source/data dependence, causing orig PASS / sliced FAIL",no,strict_counted
+2,precision,BUG-STRNCAT-SIDEEFFECT,confirmed_bug,strncat side-effect call can be removed while assertion-dependent state is kept,no,strict_counted
+3,precision,BUG-SETJMP-LONGJMP-MISSLICE,confirmed_bug,"setjmp/longjmp control-transfer dependence is missliced, leading to assertion failure",no,strict_counted
+4,precision,BUG-CALLBACK-ESCAPE-SYMBOL-LOSS,confirmed_bug,callback side effects escaping through external APIs are not preserved,no,strict_counted
+5,precision,BUG-CONSTRUCTOR-INIT-DROPPED,confirmed_bug,"constructor/global ctor initialization path is dropped, changing program state before main",no,strict_counted
+6,precision,BUG-CMPXCHG-LOCAL-INIT-MISSLICE,confirmed_bug,local initialization before cmpxchg is not preserved,no,strict_counted
+7,precision,BUG-BCOPY-LEN-SIDEEFFECT,confirmed_bug,bcopy-related memory update/length effect is removed by slicing,no,strict_counted
+8,precision,BUG-EXPLICIT-BZERO-DROPPED,confirmed_bug,explicit_bzero state-changing effect is removed by slicing,no,strict_counted
+9,precision,BUG-MEMFROB-LEN-SIDEEFFECT,confirmed_bug,"memfrob side effect is removed, changing observable memory state",no,strict_counted
+10,precision,BUG-QSORT-CALL-DROPPED,confirmed_bug,qsort call and its sorting effect can be sliced away,no,strict_counted
+11,precision,BUG-SWAB-CALL-DROPPED,confirmed_bug,swab call is dropped although later observable state still depends on it,no,strict_counted
+12,precision,BUG-STPCPY-STPNCPY-DISCARD-RET,confirmed_bug,write effects of stpcpy/stpncpy are not retained when return value is discarded,no,strict_counted
+13,precision,BUG-WCHAR-MUTATOR-DROPPED,confirmed_bug,wide-character mutator API effects are removed by slicing,no,strict_counted
+14,precision,BUG-SYSAPI-OUTBUF-DROPPED,confirmed_bug,"output-buffer side effects of system APIs are removed, leaving buffers unchanged",no,strict_counted
+15,precision,BUG-ERRNO-SIDEEFFECT-DROPPED,confirmed_bug,errno-related side effects are not preserved when return values are discarded,no,strict_counted
+16,precision,BUG-STATEFUL-API-SIDEEFFECT-DROPPED,confirmed_bug,"stateful libc/POSIX setup calls are sliced away, breaking later reads of hidden process state",no,strict_counted
+17,fatal-overlap,BUG-INDIRECT-GOTO-CRASH,overlap_risk,tool aborts on large indirect goto / indirectbr-style control-flow; still treated as overlap-risk,no,overlap_risk_excluded
+18,precision-overlap,BUG-INLINE-ASM-MEM-SIDEEFFECT,overlap_risk,"inline-asm memory side effects are not preserved, but currently kept in overlap-risk bucket",no,overlap_risk_excluded
+19,precision-overlap,BUG-VA-COPY-MISSLICE,overlap_risk,"va_copy vararg path is missliced and can crash, but currently overlaps with old upstream context",no,overlap_risk_excluded
+20,fatal-upstream,BUG-SWITCH-SUCCESSORS-CRASH,already_submitted_related,large switch CFG can trigger slicer abort; excluded from strict count due upstream relation,no,already_submitted_excluded
+21,fatal-upstream,BUG-VECTOR-INSERTELEMENT-CRASH,already_submitted_related,vector insertelement path can crash slicer; excluded from strict count due upstream relation,no,already_submitted_excluded
+22,fatal-upstream,BUG-COMDAT-INVALID-IR,already_submitted_related,C++ COMDAT/unwind slicing can produce invalid IR; excluded from strict count due upstream relation,no,already_submitted_excluded
+23,fatal-upstream,BUG-DBG-VALUE-CRASH,already_submitted_related,criterion on llvm.dbg.value crashes in addDefUseEdges; excluded from strict count due upstream relation,no,already_submitted_excluded
+24,precision-upstream,BUG-NORETURN-UNREACHABLE,already_submitted_related,noreturn/unreachable path is missliced into reachable unreachable; excluded from strict count due upstream relation,no,already_submitted_excluded
+25,csmith-recheck,"ConstantExpr pointer-compare explicit unsupported family (seed_40, seed_59)",explicit_unsupported_limitation,"raw logs explicitly report Unsupported ConstantExpr on pointer-comparison ConstantExpr; this should be tracked as explicit unsupported/limitation, not mixed into ordinary bug counts",yes,explicit_unsupported_excluded
+26,csmith-recheck,"ConstantExpr pointer-compare missing-value crash family (seed_37, seed_68, seed_80)",confirmed_internal_bug_new_recheck,"dg mis-handles pointer-comparison-derived ConstantExpr/zext values, eventually aborting with missing value in graph; no explicit unsupported marker is emitted",no,new_recheck_pending
+27,probe-warning,"manual IR probe warnings (UNHANDLED insertvalue, aggregate-return warning)",non_bug_warning,"warnings were observed in manual probes but no semantic regression or stable crash was reproduced, so they are not counted as bugs",warning_only,not_counted

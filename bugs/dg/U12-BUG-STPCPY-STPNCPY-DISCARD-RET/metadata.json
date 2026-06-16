@@ -1,0 +1,8 @@
+{
+  "id": "U12",
+  "family": "BUG-STPCPY-STPNCPY-DISCARD-RET",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "string_api_effect_tracking",
+  "report_path": "$DG_REPO/reports/precision/BUG-STPCPY-STPNCPY-DISCARD-RET.md"
+}

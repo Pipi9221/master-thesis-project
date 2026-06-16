@@ -1,0 +1,8 @@
+{
+  "id": "N02",
+  "family": "MR3-F1-CONTROL-UNREACHABLE",
+  "bucket": "newly_confirmed",
+  "counted_in_strict": "yes",
+  "category": "precision_correctness",
+  "note": "MR3-F1 control_unreachable_payload_retained; manual/matrix test, artifacts pending"
+}

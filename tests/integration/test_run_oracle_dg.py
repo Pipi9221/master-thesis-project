@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
+
+import pytest
 
 from tests.support.wsl_paths import bash_command, to_wsl_path
 
@@ -11,8 +14,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_ROOT_WSL = to_wsl_path(PROJECT_ROOT)
 SRC_ROOT_WSL = to_wsl_path(PROJECT_ROOT / "src")
 
+DG_BINARY = os.environ.get("DG_LLVM_SLICER_BINARY", "")
+
 
 def test_run_oracle_dg_slices_seed_and_mutant_in_wsl(tmp_path: Path) -> None:
+    if not DG_BINARY:
+        pytest.skip("DG_LLVM_SLICER_BINARY env var not set")
     seed_path = tmp_path / "seed.c"
     mutant_path = tmp_path / "mutant.c"
     criteria_path = tmp_path / "criteria.json"
@@ -85,7 +92,7 @@ def test_run_oracle_dg_slices_seed_and_mutant_in_wsl(tmp_path: Path) -> None:
             "--output-dir",
             _to_wsl_path(output_dir),
             "--dg-binary",
-            "/home/cyuan/projects/dg/build/tools/llvm-slicer",
+            DG_BINARY,
             "--dg-clang-binary",
             "clang-14",
             "--dg-llvm-dis-binary",

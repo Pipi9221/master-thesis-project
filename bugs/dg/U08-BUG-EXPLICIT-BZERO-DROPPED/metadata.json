@@ -1,0 +1,7 @@
+{
+  "id": "U08",
+  "family": "BUG-EXPLICIT-BZERO-DROPPED",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "note": "Report integrated into SUMMARY.md; standalone report not yet created"
+}

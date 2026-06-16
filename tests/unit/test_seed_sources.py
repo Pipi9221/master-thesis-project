@@ -145,18 +145,10 @@ def test_resolve_default_creal_script_prefers_env(monkeypatch) -> None:
     assert resolve_default_creal_script() == "/env/creal.py"
 
 
-def test_resolve_default_creal_script_uses_known_candidate(
-    tmp_path: Path, monkeypatch
-) -> None:
-    script_path = tmp_path / "creal.py"
-    script_path.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+def test_resolve_default_creal_script_returns_empty_without_env(monkeypatch) -> None:
     monkeypatch.delenv("CREAL_SCRIPT", raising=False)
-    monkeypatch.setattr(
-        "seeds.creal.DEFAULT_CREAL_SCRIPT_CANDIDATES",
-        (script_path,),
-    )
 
-    assert resolve_default_creal_script() == script_path.as_posix()
+    assert resolve_default_creal_script() == ""
 
 
 def test_resolve_default_csmith_home_prefers_env(monkeypatch) -> None:
@@ -165,21 +157,10 @@ def test_resolve_default_csmith_home_prefers_env(monkeypatch) -> None:
     assert resolve_default_csmith_home() == "/env/csmith-home"
 
 
-def test_resolve_default_csmith_home_uses_known_candidate(
-    tmp_path: Path, monkeypatch
-) -> None:
-    home = tmp_path / "csmith-home"
-    (home / "include").mkdir(parents=True)
-    (home / "bin").mkdir()
-    (home / "include" / "csmith.h").write_text("", encoding="utf-8")
-    (home / "bin" / "csmith").write_text("", encoding="utf-8")
+def test_resolve_default_csmith_home_returns_empty_without_env(monkeypatch) -> None:
     monkeypatch.delenv("CSMITH_HOME", raising=False)
-    monkeypatch.setattr(
-        "seeds.creal.DEFAULT_CSMITH_HOME_CANDIDATES",
-        (home,),
-    )
 
-    assert resolve_default_csmith_home() == home.as_posix()
+    assert resolve_default_csmith_home() == ""
 
 
 def test_llm_file_seed_source_lists_sorted_c_files(tmp_path: Path) -> None:

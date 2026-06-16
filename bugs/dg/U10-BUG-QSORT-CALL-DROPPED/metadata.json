@@ -1,0 +1,8 @@
+{
+  "id": "U10",
+  "family": "BUG-QSORT-CALL-DROPPED",
+  "bucket": "strict_unreported",
+  "counted_in_strict": "yes",
+  "category": "callback_or_state_side_effect_modeling",
+  "report_path": "$DG_REPO/reports/precision/BUG-QSORT-CALL-DROPPED.md"
+}

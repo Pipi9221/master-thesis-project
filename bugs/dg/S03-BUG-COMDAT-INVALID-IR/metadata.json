@@ -1,0 +1,8 @@
+{
+  "id": "S03",
+  "family": "BUG-COMDAT-INVALID-IR",
+  "bucket": "already_submitted_upstream",
+  "counted_in_strict": "no",
+  "category": "fatal_upstream_related",
+  "report_path": "$DG_REPO/reports/fatal/BUG-COMDAT-INVALID-IR.md"
+}

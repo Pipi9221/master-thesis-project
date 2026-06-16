@@ -1,5 +1,7 @@
 `Clang LibTooling`-based mutation engine lives here.
 
+In all examples below, `$PROJECT` refers to the repository root directory.
+
 Scope note:
 
 - `MR1` is handled at the Python pipeline layer by wrapping an external Creal
@@ -23,7 +25,7 @@ Current local environment note:
 Minimal build flow in WSL:
 
 ```bash
-cd /mnt/d/pipi922/Desktop/master-thesis/project
+cd $PROJECT
 cmake -S tooling -B tooling/build -DCMAKE_BUILD_TYPE=Debug
 cmake --build tooling/build -j2
 ```
@@ -31,28 +33,28 @@ cmake --build tooling/build -j2
 Current implemented entrypoints:
 
 ```bash
-/mnt/d/pipi922/Desktop/master-thesis/project/tooling/build/mr_ast_tool \
+$PROJECT/tooling/build/mr_ast_tool \
   normalize \
-  --seed /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/normalize_seed.c \
+  --seed $PROJECT/tests/fixtures/normalize_seed.c \
   --output /tmp/normalized.c
 
-/mnt/d/pipi922/Desktop/master-thesis/project/tooling/build/mr_ast_tool \
+$PROJECT/tooling/build/mr_ast_tool \
   discover-sites \
-  --seed /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/site_discovery_seed.c
+  --seed $PROJECT/tests/fixtures/site_discovery_seed.c
 
-/mnt/d/pipi922/Desktop/master-thesis/project/tooling/build/mr_ast_tool \
+$PROJECT/tooling/build/mr_ast_tool \
   mutate \
   --mr MR2 \
-  --seed /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/mr2_seed.c \
-  --criteria /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/mr2_criteria.json \
+  --seed $PROJECT/tests/fixtures/mr2_seed.c \
+  --criteria $PROJECT/tests/fixtures/mr2_criteria.json \
   --rng-seed 20 \
   --output-dir /tmp/mr2-out
 
-/mnt/d/pipi922/Desktop/master-thesis/project/tooling/build/mr_ast_tool \
+$PROJECT/tooling/build/mr_ast_tool \
   mutate \
   --mr MR3 \
-  --seed /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/mr3_seed.c \
-  --criteria /mnt/d/pipi922/Desktop/master-thesis/project/tests/fixtures/mr3_criteria.json \
+  --seed $PROJECT/tests/fixtures/mr3_seed.c \
+  --criteria $PROJECT/tests/fixtures/mr3_criteria.json \
   --rng-seed 31 \
   --output-dir /tmp/mr3-out
 ```
