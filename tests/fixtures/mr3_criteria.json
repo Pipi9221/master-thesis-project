@@ -1,0 +1,5 @@
+{
+  "criterion_kind": "value",
+  "variables": ["x"],
+  "seed_id": "mr3_seed"
+}

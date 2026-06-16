@@ -1,0 +1,10 @@
+__pycache__/
+.pytest_cache/
+
+artifacts/*
+!artifacts/README.md
+
+tooling/build/
+
+.tmp_*/
+tmp_*/
