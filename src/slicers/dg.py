@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from common.runner import CommandRunner
+from common.tool_paths import resolve_dg_clang, resolve_dg_lli, resolve_dg_llvm_dis, resolve_dg_llvm_link, resolve_dg_slicer
 
 from .base import SliceOutcome, SliceRequest
 
@@ -16,17 +17,17 @@ class DGAdapter:
         self,
         runner: CommandRunner,
         *,
-        binary: str = "llvm-slicer",
-        clang_binary: str = "clang-14",
-        llvm_dis_binary: str = "llvm-dis-14",
+        binary: str | None = None,
+        clang_binary: str | None = None,
+        llvm_dis_binary: str | None = None,
         compile_args: tuple[str, ...] = ("-g", "-O0"),
         include_dirs: tuple[str, ...] = (),
         extra_args: tuple[str, ...] = ("-annotate", "slice"),
     ) -> None:
         self._runner = runner
-        self._binary = binary
-        self._clang_binary = clang_binary
-        self._llvm_dis_binary = llvm_dis_binary
+        self._binary = binary if binary is not None else resolve_dg_slicer()
+        self._clang_binary = clang_binary if clang_binary is not None else resolve_dg_clang()
+        self._llvm_dis_binary = llvm_dis_binary if llvm_dis_binary is not None else resolve_dg_llvm_dis()
         self._compile_args = compile_args
         self._include_dirs = include_dirs
         self._extra_args = extra_args
@@ -83,7 +84,7 @@ class DGAdapter:
         criterion = self._resolve_criterion(request)
 
         compile_command = self.build_compile_command(request, bitcode_path)
-        compile_result = self._runner.run(compile_command)
+        compile_result = self._runner.run(compile_command, timeout=120)
         if compile_result.exit_code != 0:
             return SliceOutcome(
                 tool=request.tool,
@@ -103,7 +104,7 @@ class DGAdapter:
             )
 
         slice_command = self.build_slice_command(bitcode_path, sliced_bitcode_path, criterion)
-        slice_result = self._runner.run(slice_command)
+        slice_result = self._runner.run(slice_command, timeout=120)
         if slice_result.exit_code != 0:
             return SliceOutcome(
                 tool=request.tool,
@@ -124,7 +125,7 @@ class DGAdapter:
             )
 
         disassemble_command = self.build_disassemble_command(sliced_bitcode_path, request.output_path)
-        disassemble_result = self._runner.run(disassemble_command)
+        disassemble_result = self._runner.run(disassemble_command, timeout=60)
         if disassemble_result.exit_code != 0:
             return SliceOutcome(
                 tool=request.tool,

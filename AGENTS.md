@@ -2,9 +2,13 @@
 
 ## Positioning
 
-This project is a thesis prototype for `MR2` and `MR3` AST mutator work. It is
-not a generic mutation framework and it is not the place to re-implement the
-full historical `Slicing` pipeline.
+This project is a thesis prototype for metamorphic testing of C program slicing
+tools (Frama-C and DG/llvm-slicer). The pipeline supports MR1, MR2, MR3, and
+MR4 across both tools. It is not a generic mutation framework and it is not the
+place to re-implement the full historical `Slicing` pipeline.
+
+Phase 1 (MR1-MR4 oracles + seed sources + bug database) is complete. Phase 2
+focuses on batch experiments and thesis writing.
 
 ## Authority Order
 

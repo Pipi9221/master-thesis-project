@@ -1,0 +1,2 @@
+    PID    PPID STAT %CPU %MEM     ELAPSED CMD
+1472888 1776428 R     110  0.0    13:04:55 ./batch_experiments/test_20251024_002744/test47/mutant_program

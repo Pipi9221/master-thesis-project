@@ -1,0 +1,1 @@
+../../issues/010-gnu-constructor-dropped/cases/return_gnu_cleanup_attribute.c

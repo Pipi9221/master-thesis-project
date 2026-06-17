@@ -1,0 +1,4 @@
+After first assignment, *p_22 = 0
+After second assignment, *p_22 = -1895775712
+After bitwise AND, *p_22 = 32768
+Will goto break_cont_1 (this branch will be taken)

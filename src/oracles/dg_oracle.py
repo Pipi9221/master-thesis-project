@@ -7,6 +7,7 @@ from pathlib import Path
 from common.criteria import load_criteria_spec
 from common.metadata import MutationMeta, load_mutation_meta
 from common.runner import CommandRunner
+from common.tool_paths import resolve_dg_clang, resolve_dg_lli, resolve_dg_llvm_link
 from common.validation import CommandResult
 from slicers.base import SliceRequest
 
@@ -55,22 +56,22 @@ class DGOracle:
         *,
         adapter,
         runner: CommandRunner,
-        compiler_binary: str = "clang-14",
+        compiler_binary: str | None = None,
         compiler_extra_args: tuple[str, ...] = ("-O0", "-Wall", "-Wextra"),
         include_dirs: tuple[str, ...] = (),
         link_args: tuple[str, ...] = (),
-        lli_binary: str = "lli-14",
-        llvm_link_binary: str = "llvm-link-14",
+        lli_binary: str | None = None,
+        llvm_link_binary: str | None = None,
         llm_judge: SubprocessLlmJudge | None = None,
     ) -> None:
         self._adapter = adapter
         self._runner = runner
-        self._compiler_binary = compiler_binary
+        self._compiler_binary = compiler_binary if compiler_binary is not None else resolve_dg_clang()
         self._compiler_extra_args = compiler_extra_args
         self._include_dirs = include_dirs
         self._link_args = link_args
-        self._lli_binary = lli_binary
-        self._llvm_link_binary = llvm_link_binary
+        self._lli_binary = lli_binary if lli_binary is not None else resolve_dg_lli()
+        self._llvm_link_binary = llvm_link_binary if llvm_link_binary is not None else resolve_dg_llvm_link()
         self._llm_judge = llm_judge
 
     def run(self, request: OracleRequest) -> OracleResult:
@@ -91,7 +92,7 @@ class DGOracle:
                     status=OracleStatus.ERROR,
                     violation=False,
                     reason="missing_mutant_inputs",
-                    judge_id="dg.mr1.value_equivalence",
+                    judge_id="dg.mr1.ir_equivalence",
                     retained_symbols=(),
                     seed_slice=None,
                     mutant_slice=None,
@@ -103,50 +104,27 @@ class DGOracle:
         meta = load_mutation_meta(request.mutation_meta_path)
         request.output_dir.mkdir(parents=True, exist_ok=True)
 
-        seed_observed_source = request.output_dir / "seed_observed.c"
-        mutant_observed_source = request.output_dir / "mutant_observed.c"
-        instrument_program_for_dg_observation(
-            source_path=request.seed_path,
-            output_path=seed_observed_source,
-            variables=criteria.variables,
-        )
-        instrument_program_for_dg_observation(
-            source_path=request.mutant_path,
-            output_path=mutant_observed_source,
-            variables=criteria.variables,
-        )
-
-        seed_full = self._observe_native_program(
-            label="seed_full",
-            source_path=seed_observed_source,
-            output_dir=request.output_dir,
-            variables=criteria.variables,
-        )
-        mutant_full = self._observe_native_program(
-            label="mutant_full",
-            source_path=mutant_observed_source,
-            output_dir=request.output_dir,
-            variables=criteria.variables,
-        )
-
+        # Slice seed and mutant directly at the IR level — no observer
+        # instrumentation, no runtime execution.  DG slices LLVM IR, not C.
         seed_slice = self._adapter.slice(
             SliceRequest(
                 tool="dg",
-                input_path=seed_observed_source,
-                output_path=request.output_dir / "seed_observed_sliced.ll",
+                input_path=request.seed_path,
+                output_path=request.output_dir / "seed_sliced.ll",
                 variables=criteria.variables,
-                criterion_override=DG_OBSERVER_FUNCTION,
+                program_point=criteria.program_point,
             )
         )
         mutant_slice = self._adapter.slice(
             SliceRequest(
                 tool="dg",
-                input_path=mutant_observed_source,
-                output_path=request.output_dir / "mutant_observed_sliced.ll",
+                input_path=request.mutant_path,
+                output_path=request.output_dir / "mutant_sliced.ll",
                 variables=criteria.variables,
-                criterion_override=DG_OBSERVER_FUNCTION,
+                program_point=criteria.program_point,
             )
         )
+
         evidence = build_dg_evidence(
             criteria=criteria,
             meta=meta,
@@ -154,7 +132,6 @@ class DGOracle:
             mutant_slice=mutant_slice,
             retained_symbols=(),
         )
-        evidence["observation_criterion"] = DG_OBSERVER_FUNCTION
 
         if not seed_slice.slice_ok:
             return self._finish(
@@ -164,12 +141,12 @@ class DGOracle:
                     status=OracleStatus.ERROR,
                     violation=False,
                     reason="seed_slice_failed",
-                    judge_id="dg.mr1.value_equivalence",
+                    judge_id="dg.mr1.ir_equivalence",
                     retained_symbols=(),
                     seed_slice=seed_slice,
                     mutant_slice=mutant_slice,
                     evidence=evidence,
-                    summary="Seed slicing failed before MR1 value comparison.",
+                    summary="Seed slicing failed.",
                 ),
             )
         if not mutant_slice.slice_ok:
@@ -180,74 +157,64 @@ class DGOracle:
                     status=OracleStatus.ERROR,
                     violation=False,
                     reason="mutant_slice_failed",
-                    judge_id="dg.mr1.value_equivalence",
+                    judge_id="dg.mr1.ir_equivalence",
                     retained_symbols=(),
                     seed_slice=seed_slice,
                     mutant_slice=mutant_slice,
                     evidence=evidence,
-                    summary="Mutant slicing failed before MR1 value comparison.",
+                    summary="Mutant slicing failed.",
                 ),
             )
 
-        seed_slice_observation = self._observe_sliced_program(
-            label="seed_slice",
-            source_path=seed_observed_source,
-            slice_outcome=seed_slice,
-            variables=criteria.variables,
-        )
-        mutant_slice_observation = self._observe_sliced_program(
-            label="mutant_slice",
-            source_path=mutant_observed_source,
-            slice_outcome=mutant_slice,
-            variables=criteria.variables,
-        )
-
-        observations = {
-            "seed_full": seed_full.to_dict(),
-            "mutant_full": mutant_full.to_dict(),
-            "seed_slice": seed_slice_observation.to_dict(),
-            "mutant_slice": mutant_slice_observation.to_dict(),
-        }
-        failed_label = _first_failed_observation(
-            {
-                "seed_full": seed_full,
-                "mutant_full": mutant_full,
-                "seed_slice": seed_slice_observation,
-                "mutant_slice": mutant_slice_observation,
-            }
-        )
-        if failed_label is not None:
-            return self._finish(
-                request,
-                OracleResult(
-                    request=request,
-                    status=OracleStatus.ERROR,
-                    violation=False,
-                    reason=f"{failed_label}_execution_failed",
-                    judge_id="dg.mr1.value_equivalence",
-                    retained_symbols=(),
-                    seed_slice=seed_slice,
-                    mutant_slice=mutant_slice,
-                    observations=observations,
-                    evidence=evidence,
-                    summary=f"Execution failed while collecting observations for {failed_label}.",
-                ),
-            )
-
-        value_comparisons = build_value_comparisons(
-            variables=criteria.variables,
-            original_values=seed_full.values,
-            mutant_values=mutant_full.values,
-            original_slice_values=seed_slice_observation.values,
-            mutant_slice_values=mutant_slice_observation.values,
-        )
-        decision = judge_value_equivalence(
-            value_comparisons,
-            tool="dg",
-            mr="MR1",
-        )
+        # Deterministic prefilter: check that criterion symbols are retained in
+        # both slices.  If both retain the criterion variable, that is a
+        # tentative PASS; otherwise VIOLATION.
         retained_decision = judge_retained_symbols(meta, mutant_slice, tool="dg", mr="MR1")
         evidence["retained_symbols_auxiliary"] = list(retained_decision.retained_symbols)
+
+        criterion_retained_in_seed = _symbol_retained_in_slice(
+            criteria.variables, seed_slice
+        )
+        criterion_retained_in_mutant = _symbol_retained_in_slice(
+            criteria.variables, mutant_slice
+        )
+        deterministic_pf = JudgeDecision(
+            status=OracleStatus.PASS
+            if (criterion_retained_in_seed and criterion_retained_in_mutant)
+            else OracleStatus.VIOLATION,
+            reason="criterion_retained"
+            if (criterion_retained_in_seed and criterion_retained_in_mutant)
+            else "criterion_lost_in_slice",
+            judge_id="dg.mr1.ir_equivalence",
+            summary=(
+                "Criterion variable retained in both slices"
+                if (criterion_retained_in_seed and criterion_retained_in_mutant)
+                else "Criterion variable missing from one or both slices"
+            ),
+            retained_symbols=retained_decision.retained_symbols,
+        )
+
+        if self._llm_judge is None:
+            evidence["llm_judge"] = {"mode": "off"}
+            decision = deterministic_pf
+        elif deterministic_pf.status != OracleStatus.PASS:
+            evidence["llm_judge"] = {
+                "mode": "skipped",
+                "reason": "deterministic_prefilter_decisive",
+                "deterministic_status": deterministic_pf.status.value,
+            }
+            decision = deterministic_pf
+        else:
+            llm_result = self._llm_judge.judge_dg(
+                request=request,
+                criteria=criteria,
+                meta=meta,
+                evidence=evidence,
+                deterministic_decision=deterministic_pf,
+            )
+            evidence["llm_judge"] = llm_result.to_dict()
+            decision = llm_result.decision
+
         return self._finish(
             request,
             OracleResult(
@@ -259,8 +226,8 @@ class DGOracle:
                 retained_symbols=retained_decision.retained_symbols,
                 seed_slice=seed_slice,
                 mutant_slice=mutant_slice,
-                value_comparisons=value_comparisons,
-                observations=observations,
+                value_comparisons=None,
+                observations=None,
                 evidence=evidence,
                 summary=decision.summary,
             ),
@@ -450,8 +417,19 @@ class DGOracle:
                 ),
             )
 
+        evidence = {
+            "kind": "dg_mr4_evidence_v1",
+            "programs": {item["label"]: item["evidence"] for item in program_results},
+        }
+
         first_violation = next((item for item in program_results if item["decision"].violation), None)
         if first_violation is not None:
+            if self._llm_judge is not None:
+                evidence["llm_judge"] = {
+                    "mode": "skipped",
+                    "reason": "deterministic_prefilter_decisive",
+                    "deterministic_status": "VIOLATION",
+                }
             return self._finish(
                 request,
                 OracleResult(
@@ -467,13 +445,33 @@ class DGOracle:
                         if any(item["label"] == "mutant" for item in program_results)
                         else None
                     ),
-                    evidence={
-                        "kind": "dg_mr4_evidence_v1",
-                        "programs": {item["label"]: item["evidence"] for item in program_results},
-                    },
+                    evidence=evidence,
                     summary=first_violation["decision"].summary,
                 ),
             )
+
+        reason = "set_match"
+        judge_id = "dg.mr4.set_equivalence"
+        summary = "Union(single-variable slices) matches multi-variable slice."
+
+        if self._llm_judge is None:
+            evidence["llm_judge"] = {"mode": "off"}
+        else:
+            det_decision = JudgeDecision(
+                status=OracleStatus.PASS,
+                reason=reason,
+                judge_id=judge_id,
+                summary=summary,
+            )
+            llm_result = self._llm_judge.judge_dg_mr4(
+                request=request,
+                evidence=evidence,
+                deterministic_decision=det_decision,
+            )
+            evidence["llm_judge"] = llm_result.to_dict()
+            reason = llm_result.decision.reason
+            judge_id = llm_result.decision.judge_id
+            summary = llm_result.decision.summary
 
         return self._finish(
             request,
@@ -481,8 +479,8 @@ class DGOracle:
                 request=request,
                 status=OracleStatus.PASS,
                 violation=False,
-                reason="set_match",
-                judge_id="dg.mr4.set_equivalence",
+                reason=reason,
+                judge_id=judge_id,
                 retained_symbols=(),
                 seed_slice=next(item["multi_outcome"] for item in program_results if item["label"] == "seed"),
                 mutant_slice=(
@@ -490,11 +488,8 @@ class DGOracle:
                     if any(item["label"] == "mutant" for item in program_results)
                     else None
                 ),
-                evidence={
-                    "kind": "dg_mr4_evidence_v1",
-                    "programs": {item["label"]: item["evidence"] for item in program_results},
-                },
-                summary="Union(single-variable slices) matches multi-variable slice.",
+                evidence=evidence,
+                summary=summary,
             ),
         )
 
@@ -589,7 +584,7 @@ class DGOracle:
             source_path=source_path,
             executable_path=executable_path,
         )
-        compile_result = self._runner.run(compile_command)
+        compile_result = self._runner.run(compile_command, timeout=120)
         if compile_result.exit_code != 0:
             return ProgramObservation(
                 label=label,
@@ -599,7 +594,7 @@ class DGOracle:
                 run_result=CommandResult(exit_code=-1, stdout="", stderr="compile_failed"),
                 values={},
             )
-        run_result = self._runner.run([str(executable_path)])
+        run_result = self._runner.run([str(executable_path)], timeout=30)
         return ProgramObservation(
             label=label,
             instrumented_path=source_path,
@@ -658,7 +653,7 @@ class DGOracle:
             "-o",
             str(helper_bitcode_path),
         ]
-        helper_compile_result = self._runner.run(helper_compile_command)
+        helper_compile_result = self._runner.run(helper_compile_command, timeout=60)
         if helper_compile_result.exit_code != 0:
             return ProgramObservation(
                 label=label,
@@ -675,7 +670,7 @@ class DGOracle:
             "-o",
             str(linked_bitcode_path),
         ]
-        link_result = self._runner.run(link_command)
+        link_result = self._runner.run(link_command, timeout=60)
         if link_result.exit_code != 0:
             return ProgramObservation(
                 label=label,
@@ -686,7 +681,7 @@ class DGOracle:
                 values={},
             )
         run_command = [self._lli_binary, str(linked_bitcode_path)]
-        run_result = self._runner.run(run_command)
+        run_result = self._runner.run(run_command, timeout=30)
         return ProgramObservation(
             label=label,
             instrumented_path=source_path,
@@ -719,3 +714,17 @@ def _first_failed_observation(
         if observation.compile_result.exit_code != 0 or observation.run_result.exit_code < 0:
             return label
     return None
+
+
+def _symbol_retained_in_slice(
+    symbols: tuple[str, ...],
+    slice_outcome,
+) -> bool:
+    """Check whether any of *symbols* appear in the sliced IR text."""
+    if not slice_outcome.output_path.exists():
+        return False
+    text = slice_outcome.output_path.read_text(encoding="utf-8", errors="ignore")
+    for symbol in symbols:
+        if symbol in text:
+            return True
+    return False

@@ -8,3 +8,14 @@ tooling/build/
 
 .tmp_*/
 tmp_*/
+
+# Local environment configuration (copy .env.example to .env and adapt)
+.env
+
+# Batch experiment output (generated)
+experiment/batch-run/
+
+# Binary artifacts in bug database
+bugs/frama/defects/**/*.o
+bugs/frama/defects/**/test_original
+bugs/frama/defects/**/test_sliced

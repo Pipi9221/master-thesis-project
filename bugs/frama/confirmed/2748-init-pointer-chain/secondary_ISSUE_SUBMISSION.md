@@ -1,0 +1,1 @@
+../../defects/test6_指针初始化丢失（三级指针）/ISSUE_SUBMISSION.md

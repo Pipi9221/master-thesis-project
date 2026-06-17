@@ -1,0 +1,1 @@
+../../defects/defect/bug4_va_list_added_2026-03-28/test_va_list_dependency_sliced_fixed2.c

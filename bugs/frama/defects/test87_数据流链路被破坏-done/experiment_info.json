@@ -1,0 +1,151 @@
+{
+  "experiment_id": 87,
+  "timestamp": "2025-10-23T20:12:08.486472",
+  "source_file": "43TJCU_seed.c",
+  "mutant_file": "43TJCU_seed_syn0.c",
+  "slice_criteria": [
+    "g_89",
+    "g_277",
+    "g_76",
+    "g_167",
+    "g_326",
+    "g_329",
+    "g_336",
+    "g_85",
+    "g_333",
+    "g_44",
+    "g_80",
+    "g_128",
+    "g_166",
+    "g_364",
+    "g_450"
+  ],
+  "actual_sliced_variable": "g_89",
+  "global_variables": [
+    "g_89",
+    "g_277",
+    "g_76",
+    "g_167",
+    "g_326",
+    "g_329",
+    "g_336",
+    "g_85",
+    "g_333",
+    "g_44",
+    "g_80",
+    "g_128",
+    "g_166",
+    "g_364",
+    "g_450",
+    "g_527",
+    "g_39",
+    "g_51",
+    "g_165",
+    "g_257",
+    "g_312",
+    "g_608",
+    "g_713",
+    "g_963",
+    "g_1100",
+    "g_1254",
+    "g_1335",
+    "g_2107",
+    "g_2215",
+    "g_2488",
+    "g_2492",
+    "g_2599",
+    "g_3325"
+  ],
+  "variable_comparisons": {
+    "g_89": {
+      "original": "12",
+      "mutant": "12",
+      "original_slice": "12",
+      "mutant_slice": "12"
+    },
+    "g_277": {
+      "original": "-1",
+      "mutant": "-1",
+      "original_slice": "-1",
+      "mutant_slice": "-1"
+    },
+    "g_76": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_167": {
+      "original": "15785518536639561645",
+      "mutant": "15785518536639561645",
+      "original_slice": "15785518536639561699",
+      "mutant_slice": "15785518536639561753"
+    },
+    "g_326": {
+      "original": "1",
+      "mutant": "1",
+      "original_slice": "1",
+      "mutant_slice": "1"
+    },
+    "g_329": {
+      "original": "65535",
+      "mutant": "65535",
+      "original_slice": "65535",
+      "mutant_slice": "65535"
+    },
+    "g_336": {
+      "original": "240",
+      "mutant": "240",
+      "original_slice": "240",
+      "mutant_slice": "240"
+    },
+    "g_85": {
+      "original": "8",
+      "mutant": "8",
+      "original_slice": "8",
+      "mutant_slice": "8"
+    },
+    "g_333": {
+      "original": "49693",
+      "mutant": "49693",
+      "original_slice": "未在切片中定义",
+      "mutant_slice": "49693"
+    },
+    "g_44": {
+      "original": "427811014",
+      "mutant": "427811014",
+      "original_slice": "427811014",
+      "mutant_slice": "427811014"
+    },
+    "g_80": {
+      "original": "4294967290",
+      "mutant": "4294967290",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_128": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_166": {
+      "original": "99",
+      "mutant": "99",
+      "original_slice": "99",
+      "mutant_slice": "99"
+    },
+    "g_364": {
+      "original": "1",
+      "mutant": "1",
+      "original_slice": "1",
+      "mutant_slice": "1"
+    },
+    "g_450": {
+      "original": "906028465",
+      "mutant": "906028465",
+      "original_slice": "906028465",
+      "mutant_slice": "906028465"
+    }
+  }
+}

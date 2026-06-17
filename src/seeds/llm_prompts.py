@@ -41,6 +41,53 @@ BASE_PROMPT_TEMPLATE = PromptTemplate(
     placeholders=("feature_focus", "criteria", "dependency_focus"),
 )
 
+# MR1 dual-output prompt: asks the LLM to generate both a seed program and a
+# semantically-equivalent variant in a single response, separated by a delimiter.
+MR1_DUAL_OUTPUT_PROMPT_TEMPLATE = PromptTemplate(
+    template_text=(
+        "请生成一对语义等价的单文件 C11 程序，用于测试静态后向程序切片工具。\n\n"
+        "要求：\n"
+        "1. 第一个程序（种子程序）和第二个程序（语义保持变体）都必须能独立编译运行\n"
+        "2. 两个程序必须产生完全相同的可观测输出（通过 printf 输出观测变量值）\n"
+        "3. 变体程序必须通过以下一种或多种变换从种子程序派生：\n"
+        "   - 局部变量和函数参数重命名\n"
+        "   - 等价表达式替换（如数组索引 ↔ 指针算术）\n"
+        "   - 独立语句或声明的重排序\n"
+        "   - 等价控制流重构（for↔while、if↔switch）\n"
+        "4. **重要**：观测变量 <criteria> 在种子和变体中必须保持完全相同的名称，"
+        "不得重命名。其他所有符号可以自由重命名。\n\n"
+        "请优先围绕 <feature_focus> 构造高风险语义场景，"
+        "使 <criteria> 的值依赖于 <dependency_focus>。\n\n"
+        "输出格式：先输出完整的种子程序，然后单独一行输出 // ===VARIANT===，"
+        "再输出完整的变体程序。两个程序各自必须包含完整的 #include 和 main 函数。"
+        "仅输出 C 代码和分隔符，不要附加任何解释。"
+    ),
+    placeholders=("feature_focus", "criteria", "dependency_focus"),
+)
+
+
+# MR4 seed prompt: asks the LLM to generate a program with multiple independent
+# criterion variables that can naturally form single- and multi-variable slices.
+MR4_SEED_PROMPT_TEMPLATE = PromptTemplate(
+    template_text=(
+        "请生成一个用于测试静态后向程序切片工具的单文件 C11 程序。"
+        "程序应可独立编译运行，并包含明确的 printf 输出语句。\n\n"
+        "**关键要求**：\n"
+        "1. 必须定义至少 2 个标量全局变量（如 int、float 等），变量名必须以 g_ 开头（如 g_a、g_b）\n"
+        "2. 每个 g_ 全局变量必须在 main 函数中通过 printf 输出其最终值\n"
+        "3. 每个 g_ 全局变量的值应依赖于不同的计算路径或数据依赖链\n"
+        "4. 两个全局变量的依赖路径应部分独立但可组合——即各有独立的依赖节点，也可共享部分中间节点\n"
+        "5. 程序中应包含 3-5 个辅助局部变量或中间计算，形成清晰的依赖层次\n\n"
+        "请优先围绕 <feature_focus> 构造高风险语义场景，"
+        "重点考虑多级指针、函数指针、结构体字段、数组与内存操作等数据相关结构，"
+        "以及回调、switch/goto、变参等 C 语言特性，"
+        "使每个 g_ 全局变量的值依赖于 <dependency_focus>。\n\n"
+        "请避免把未定义行为作为触发前提，不依赖大型外部工程或复杂构建系统；"
+        "程序在切片导出后应尽可能保持可重编译性。输出仅包含完整 C 源代码，不要附加解释。"
+    ),
+    placeholders=("feature_focus", "dependency_focus"),
+)
+
 
 # ---------------------------------------------------------------------------
 # Appendix B.1.2 Table B-1: MR-specific supplementary constraints
@@ -170,6 +217,46 @@ def build_prompt(
     return "\n".join(parts)
 
 
+def build_mr1_dual_prompt(
+    *,
+    feature_focus: str = "",
+    criteria: str = "keep",
+    dependency_focus: str = "",
+) -> str:
+    """Build the MR1 dual-output prompt (seed + variant in one LLM call)."""
+    if not feature_focus:
+        feature_focus = _default_feature_focus("MR1")
+    if not dependency_focus:
+        dependency_focus = _default_dependency_focus("MR1")
+    base = MR1_DUAL_OUTPUT_PROMPT_TEMPLATE.render(
+        feature_focus=feature_focus,
+        criteria=criteria,
+        dependency_focus=dependency_focus,
+    )
+    topic_hint = _build_topic_hint("MR1")
+    parts = [base, "", topic_hint]
+    return "\n".join(parts)
+
+
+def build_mr4_prompt(
+    *,
+    feature_focus: str = "",
+    dependency_focus: str = "",
+) -> str:
+    """Build the MR4-specific prompt for multi-criterion seed program generation."""
+    if not feature_focus:
+        feature_focus = _default_feature_focus("MR4")
+    if not dependency_focus:
+        dependency_focus = _default_dependency_focus("MR4")
+    base = MR4_SEED_PROMPT_TEMPLATE.render(
+        feature_focus=feature_focus,
+        dependency_focus=dependency_focus,
+    )
+    topic_hint = _build_topic_hint("MR4")
+    parts = [base, "", topic_hint]
+    return "\n".join(parts)
+
+
 def _default_feature_focus(mr: str) -> str:
     """Return a sensible default feature_focus for each MR."""
     defaults: dict[str, str] = {
@@ -208,6 +295,79 @@ def _build_topic_hint(mr: str) -> str:
     lines.append("")
     lines.append("请确保程序覆盖上述至少一个维度的特征。")
     return "\n".join(lines)
+
+
+# ===========================================================================
+# Judge prompts
+# ===========================================================================
+
+# System prompt used by the seed-generation LLM (deepseek_client.py).
+SEED_GENERATION_SYSTEM_PROMPT = (
+    "You are an expert C11 programmer. Generate complete, compilable C source "
+    "code. Output ONLY the C code, no explanations, no markdown fences."
+)
+
+# System prompt used by the judge LLM (deepseek_judge.py).
+JUDGE_SYSTEM_PROMPT = (
+    "You are a rigorous judge for a program slicing experiment. "
+    "Your task is to review the evidence bundle and determine whether the "
+    "slicing result is PASS (no violation), VIOLATION (the metamorphic relation "
+    "is violated), or ERROR (evidence is insufficient or malformed).\n\n"
+    "Key rules:\n"
+    "- MR1: Seed and mutant slices must preserve equivalent data-dependency "
+    "chains for the criterion variable. Symbol renaming is expected and not "
+    "a violation.\n"
+    "- MR2: Inserted irrelevant data-flow noise should NOT survive in the slice.\n"
+    "- MR3: Inserted dead-code control-flow payload should NOT survive in the slice.\n"
+    "- MR4: The union of single-variable slice instruction sets must equal "
+    "the multi-variable slice instruction set. Trivial formatting/metadata "
+    "differences are not violations.\n"
+    "- If the deterministic prefilter already found a VIOLATION, trust it.\n"
+    "- If the slice failed, that is an ERROR.\n"
+    "- If evidence is incomplete, that is an ERROR.\n\n"
+    "Output ONLY a single JSON object. No markdown, no explanation outside the JSON."
+)
+
+
+JUDGE_MR_EXPECTATIONS: dict[str, str] = {
+    "MR1": (
+        "DG slices at the LLVM IR level. The seed and mutant are semantically equivalent "
+        "C programs. After slicing both for the same criterion variable, the two slices "
+        "should preserve equivalent data-dependency chains for that variable. "
+        "Compare the slice IR evidence (retained instructions, criterion variable "
+        "appearances, source snippets) for seed and mutant. "
+        "If both slices capture equivalent computation paths for the criterion "
+        "variable, that is PASS. If one slice preserves dependencies the other "
+        "loses, that is a VIOLATION. "
+        "Note: symbol renaming between seed and mutant is expected; do not treat "
+        "renamed symbols as violations."
+    ),
+    "MR2": "Inserted irrelevant executable noise should not survive in the DG slice.",
+    "MR3": "Inserted dead-code payload should not survive in the DG slice.",
+    "MR4": (
+        "The union of single-variable slice instruction sets must equal the "
+        "multi-variable slice instruction set. Discrepancies that represent "
+        "genuine semantic differences are VIOLATIONs; trivial formatting or "
+        "metadata differences may be PASS."
+    ),
+}
+
+
+def build_judge_prompt(mr: str) -> str:
+    """Build the judge prompt for a specific metamorphic relation."""
+    expectation = JUDGE_MR_EXPECTATIONS.get(
+        mr,
+        "Judge the DG slicing result against the requested metamorphic relation.",
+    )
+    return (
+        "You are judging a DG slicing result.\n"
+        f"Metamorphic relation: {mr}\n"
+        f"Expectation: {expectation}\n"
+        "Read the bundle JSON and decide whether the result is PASS, VIOLATION, or ERROR.\n"
+        "Treat malformed or insufficient evidence as ERROR.\n"
+        "Return only JSON with this schema:\n"
+        '{"status":"PASS|VIOLATION|ERROR","reason":"snake_case","summary":"short explanation","confidence":0.0}\n'
+    )
 
 
 # ---------------------------------------------------------------------------

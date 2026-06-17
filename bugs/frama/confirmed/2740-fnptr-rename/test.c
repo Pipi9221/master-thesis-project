@@ -1,0 +1,1 @@
+../../defects/defect/bug1_function_pointer_added_2026-03-28/test.c

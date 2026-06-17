@@ -1,0 +1,1 @@
+../../issues/010-gnu-constructor-dropped/artifacts/return_gnu_constructor_init.sliced.c

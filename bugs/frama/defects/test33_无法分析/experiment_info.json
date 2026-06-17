@@ -1,0 +1,103 @@
+{
+  "experiment_id": 33,
+  "timestamp": "2025-10-23T23:53:18.163101",
+  "source_file": "CQYKR1_seed.c",
+  "mutant_file": "CQYKR1_seed_syn0.c",
+  "slice_criteria": [
+    "g_88",
+    "g_163",
+    "g_254",
+    "g_445",
+    "g_97",
+    "g_100",
+    "g_415",
+    "g_239",
+    "g_261",
+    "g_338"
+  ],
+  "actual_sliced_variable": "g_88",
+  "global_variables": [
+    "g_88",
+    "g_163",
+    "g_254",
+    "g_445",
+    "g_97",
+    "g_100",
+    "g_415",
+    "g_239",
+    "g_261",
+    "g_338",
+    "g_541",
+    "g_508",
+    "g_897",
+    "g_18",
+    "g_161",
+    "g_617",
+    "g_814",
+    "g_705",
+    "g_1290",
+    "g_1324"
+  ],
+  "variable_comparisons": {
+    "g_88": {
+      "original": "1",
+      "mutant": "1",
+      "original_slice": "1",
+      "mutant_slice": "1"
+    },
+    "g_163": {
+      "original": "-1",
+      "mutant": "-1",
+      "original_slice": "-1",
+      "mutant_slice": "1"
+    },
+    "g_254": {
+      "original": "4",
+      "mutant": "4",
+      "original_slice": "4",
+      "mutant_slice": "20"
+    },
+    "g_445": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_97": {
+      "original": "1",
+      "mutant": "1",
+      "original_slice": "1",
+      "mutant_slice": "1"
+    },
+    "g_100": {
+      "original": "-6",
+      "mutant": "-6",
+      "original_slice": "-6",
+      "mutant_slice": "1"
+    },
+    "g_415": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "-1"
+    },
+    "g_239": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_261": {
+      "original": "1",
+      "mutant": "1",
+      "original_slice": "1",
+      "mutant_slice": "1"
+    },
+    "g_338": {
+      "original": "2",
+      "mutant": "2",
+      "original_slice": "2",
+      "mutant_slice": "1"
+    }
+  }
+}

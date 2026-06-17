@@ -26,6 +26,11 @@ import sys
 from pathlib import Path
 from urllib import error, request
 
+# Ensure src/ is on the path so we can import prompt definitions.
+_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
 
 DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
 DEFAULT_MODEL = "deepseek-v4-pro"
@@ -39,32 +44,20 @@ def _call_deepseek_judge(
     base_url: str,
     model: str,
 ) -> str:
-    url = f"{base_url}/chat/completions"
+    from seeds.llm_prompts import JUDGE_SYSTEM_PROMPT
 
-    system_prompt = (
-        "You are a rigorous judge for a program slicing experiment. "
-        "Your task is to review the evidence bundle and determine whether the "
-        "slicing result is PASS (no violation), VIOLATION (the metamorphic relation "
-        "is violated), or ERROR (evidence is insufficient or malformed).\n\n"
-        "Key rules:\n"
-        "- MR2: Inserted irrelevant data-flow noise should NOT survive in the slice.\n"
-        "- MR3: Inserted dead-code control-flow payload should NOT survive in the slice.\n"
-        "- If the deterministic prefilter already found a VIOLATION, trust it.\n"
-        "- If the slice failed, that's an ERROR.\n"
-        "- If evidence is incomplete, that's an ERROR.\n\n"
-        "Output ONLY a single JSON object. No markdown, no explanation outside the JSON."
-    )
+    url = f"{base_url}/chat/completions"
 
     body = json.dumps(
         {
             "model": model,
             "messages": [
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt_text},
                 {"role": "user", "content": f"Evidence bundle:\n\n```json\n{bundle_text}\n```"},
             ],
             "temperature": 0.3,
-            "max_tokens": 1024,
+            "max_tokens": 4096,
         }
     ).encode("utf-8")
 

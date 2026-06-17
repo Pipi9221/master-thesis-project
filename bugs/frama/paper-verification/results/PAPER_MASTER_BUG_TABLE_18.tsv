@@ -1,0 +1,19 @@
+group	id	status	category	cause_short	evidence
+submitted14	2734	not_a_bug	expected_tool_behavior	Eva recursion specification/input issue not slicing defect	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2734/RESOLUTION_NOTE_NOT_A_BUG.md
+submitted14	2735	reproduced_mismatch	ub_sensitive_semantic_mismatch	unsequenced read/write linearization changes g_371 path	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2735/ROOT_CAUSE_ANALYSIS_g371.md
+submitted14	2736	reproduced	loop_nontermination	critical loop exit condition dropped	D:/home/cyuan/projects/Slicing/defects/debug_deadloop_test47
+submitted14	2737	reproduced_mismatch	initializer_loss	l_4351 initializer removed while use preserved	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2737/ROOT_CAUSE_ANALYSIS.md
+submitted14	2739	reproduced_crash	initializer_loss_crash	pointer init removed then dereferenced	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2739/ROOT_CAUSE_ANALYSIS.md
+submitted14	2740	reproduced	function_pointer_rename_mismatch	stale function-pointer targets after renaming	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2740/CONSTRUCTED_REPRO_2026-03-28.md
+submitted14	2741	reproduced	vla_runtime_stub_missing	exported __fc_vla_alloc has no linkable definition	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2741/ROOT_CAUSE_ANALYSIS.md
+submitted14	2742	reproduced	varargs_type_system	illegal va_list array-type assignment in slice	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2742
+submitted14	2746	reproduced	initializer_loss	initialization expression dropped	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2746
+submitted14	2747	reproduced	uninitialized_divisor_zero	uninitialized divisor l_488 leads to SIGFPE	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2747/ROOT_CAUSE_ANALYSIS.md
+submitted14	2748	reproduced_mismatch	initializer_and_pointer_chain_loss	init loss plus pointer-chain degradation	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2748/ROOT_CAUSE_ANALYSIS.md
+submitted14	2749	reproduced	function_slicing_dataflow_break	function slicing deforms parameter/dataflow	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2749
+submitted14	2750	reproduced	precision_over_preservation	unused global over-preserved	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2750
+submitted14	2751	reproduced	precision_over_preservation	unmodified criterion over-preserved	D:/home/cyuan/projects/Slicing/submitted-issue-sources/issue-2751
+additional4	2753-007	reproduced	atomic_runtime_symbol_missing	exported slice keeps __fc_atomic symbols without implementations	/home/cyuan/projects/Slicing/issues/007-c11-atomics-undefined-symbols
+additional4	2753-010	reproduced	lifecycle_hook_semantic_drop	constructor/destructor/atexit/cleanup effects dropped	/home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped
+additional4	2753-015	reproduced	strict_c11_pid_t_visibility	export introduces pid_t and strict c11 compile fails	/home/cyuan/projects/Slicing/issues/015-posix-pid_t-missing
+additional4	2753-016	reproduced	slice_loop_inv_nyi_abort	slice-loop-inv aborts on term-lval dependency NYI	/home/cyuan/projects/Slicing/issues/016-slicing-term-lval-deps

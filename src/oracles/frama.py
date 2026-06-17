@@ -310,7 +310,7 @@ class FramaValueOracle:
             source_path=instrumented_path,
             executable_path=executable_path,
         )
-        compile_result = self._runner.run(compile_command)
+        compile_result = self._runner.run(compile_command, timeout=120)
         if compile_result.exit_code != 0:
             return ProgramObservation(
                 label=label,
@@ -320,7 +320,7 @@ class FramaValueOracle:
                 run_result=CommandResult(exit_code=-1, stdout="", stderr="compile_failed"),
                 values={},
             )
-        run_result = self._runner.run([str(executable_path)])
+        run_result = self._runner.run([str(executable_path)], timeout=30)
         return ProgramObservation(
             label=label,
             instrumented_path=instrumented_path,

@@ -1,0 +1,1 @@
+../../defects/test34_切片后运行退出（指针未初始化）/LJKE95_seed_syn0.c

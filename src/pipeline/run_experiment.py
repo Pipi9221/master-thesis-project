@@ -38,11 +38,11 @@ class ExperimentConfig:
     compiler_binary: str = "gcc"
     compiler_args: str = "-Wall -Wextra"
     link_args: str = "-lm"
-    dg_binary: str = "llvm-slicer"
-    dg_clang_binary: str = "clang-14"
-    dg_llvm_dis_binary: str = "llvm-dis-14"
-    dg_lli_binary: str = "lli-14"
-    dg_llvm_link_binary: str = "llvm-link-14"
+    dg_binary: str | None = None
+    dg_clang_binary: str | None = None
+    dg_llvm_dis_binary: str | None = None
+    dg_lli_binary: str | None = None
+    dg_llvm_link_binary: str | None = None
     dg_native_compile_args: str = "-O0 -Wall -Wextra"
     dg_args: str = "-annotate slice"
     dg_judge_mode: str = "off"
@@ -130,73 +130,92 @@ def run_experiment(config: ExperimentConfig) -> dict[str, object]:
     selected_tools = _selected_tools(config)
 
     for case in generation_manifest["cases"]:
-        case_dir = manifest_root / str(case["case_dir"])
-        seed_path = _resolve_case_artifact_path(case_dir, case, "seed_path", "seed.c")
-        criteria_path = _resolve_case_artifact_path(
-            case_dir,
-            case,
-            "criteria_path",
-            "criteria.json",
-        )
-        mutant_path = _resolve_optional_case_artifact_path(
-            case_dir,
-            case,
-            "mutant_path",
-            "mutant.c",
-        )
-        mutation_meta_path = _resolve_optional_case_artifact_path(
-            case_dir,
-            case,
-            "mutation_meta_path",
-            "mutation_meta.json",
-        )
-        oracle_runs: dict[str, dict[str, object]] = {}
-        for tool in selected_tools:
-            oracle_output_dir = case_dir / f"oracle-{tool}"
-            result = run_oracle(
-                RunOracleConfig(
-                    tool=tool,
-                    mr=generation_manifest["mr"],
-                    seed_path=seed_path,
-                    mutant_path=mutant_path,
-                    criteria_path=criteria_path,
-                    mutation_meta_path=mutation_meta_path,
-                    output_dir=oracle_output_dir,
-                    frama_binary=config.frama_binary,
-                    frama_args=config.frama_args,
-                    compiler_binary=config.compiler_binary,
-                    compiler_args=config.compiler_args,
-                    link_args=config.link_args,
-                    csmith_include_dir=config.csmith_include_dir,
-                    dg_binary=config.dg_binary,
-                    dg_clang_binary=config.dg_clang_binary,
-                    dg_llvm_dis_binary=config.dg_llvm_dis_binary,
-                    dg_lli_binary=config.dg_lli_binary,
-                    dg_llvm_link_binary=config.dg_llvm_link_binary,
-                    dg_native_compile_args=config.dg_native_compile_args,
-                    dg_args=config.dg_args,
-                    dg_judge_mode=config.dg_judge_mode,
-                    dg_llm_judge_command=config.dg_llm_judge_command,
-                    dg_llm_prompt_version=config.dg_llm_prompt_version,
-                )
+        try:
+            case_dir = manifest_root / str(case["case_dir"])
+            seed_path = _resolve_case_artifact_path(case_dir, case, "seed_path", "seed.c")
+            criteria_path = _resolve_case_artifact_path(
+                case_dir,
+                case,
+                "criteria_path",
+                "criteria.json",
             )
-            oracle_runs[tool] = {
-                "status": result.status.value,
-                "reason": result.reason,
-                "judge_id": result.judge_id,
-                "output_dir": oracle_output_dir.name,
-                "oracle_result_path": str(oracle_output_dir / "oracle_result.json"),
-            }
+            mutant_path = _resolve_optional_case_artifact_path(
+                case_dir,
+                case,
+                "mutant_path",
+                "mutant.c",
+            )
+            mutation_meta_path = _resolve_optional_case_artifact_path(
+                case_dir,
+                case,
+                "mutation_meta_path",
+                "mutation_meta.json",
+            )
+            oracle_runs: dict[str, dict[str, object]] = {}
+            for tool in selected_tools:
+                oracle_output_dir = case_dir / f"oracle-{tool}"
+                try:
+                    result = run_oracle(
+                        RunOracleConfig(
+                            tool=tool,
+                            mr=generation_manifest["mr"],
+                            seed_path=seed_path,
+                            mutant_path=mutant_path,
+                            criteria_path=criteria_path,
+                            mutation_meta_path=mutation_meta_path,
+                            output_dir=oracle_output_dir,
+                            frama_binary=config.frama_binary,
+                            frama_args=config.frama_args,
+                            compiler_binary=config.compiler_binary,
+                            compiler_args=config.compiler_args,
+                            link_args=config.link_args,
+                            csmith_include_dir=config.csmith_include_dir,
+                            dg_binary=config.dg_binary,
+                            dg_clang_binary=config.dg_clang_binary,
+                            dg_llvm_dis_binary=config.dg_llvm_dis_binary,
+                            dg_lli_binary=config.dg_lli_binary,
+                            dg_llvm_link_binary=config.dg_llvm_link_binary,
+                            dg_native_compile_args=config.dg_native_compile_args,
+                            dg_args=config.dg_args,
+                            dg_judge_mode=config.dg_judge_mode,
+                            dg_llm_judge_command=config.dg_llm_judge_command,
+                            dg_llm_prompt_version=config.dg_llm_prompt_version,
+                        )
+                    )
+                    oracle_runs[tool] = {
+                        "status": result.status.value,
+                        "reason": result.reason,
+                        "judge_id": result.judge_id,
+                        "output_dir": oracle_output_dir.name,
+                        "oracle_result_path": str(oracle_output_dir / "oracle_result.json"),
+                    }
+                except Exception as exc:
+                    oracle_runs[tool] = {
+                        "status": "ERROR",
+                        "reason": "oracle_exception",
+                        "summary": str(exc),
+                    }
 
-        case_results.append(
-            {
-                **case,
-                "relation_requires_mutant": bool(
-                    case.get("relation_requires_mutant", mutant_path is not None)
-                ),
-                "oracle_runs": oracle_runs,
-            }
-        )
+            case_results.append(
+                {
+                    **case,
+                    "relation_requires_mutant": bool(
+                        case.get("relation_requires_mutant", mutant_path is not None)
+                    ),
+                    "oracle_runs": oracle_runs,
+                }
+            )
+        except Exception as exc:
+            case_results.append(
+                {
+                    **case,
+                    "relation_requires_mutant": bool(
+                        case.get("relation_requires_mutant", case.get("mutant_path") is not None)
+                    ),
+                    "oracle_runs": {},
+                    "error": str(exc),
+                }
+            )
 
     manifest = {
         "kind": "experiment_manifest_v1",
@@ -344,11 +363,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--compiler-binary", default="gcc")
     parser.add_argument("--compiler-args", default="-Wall -Wextra")
     parser.add_argument("--link-args", default="-lm")
-    parser.add_argument("--dg-binary", default="llvm-slicer")
-    parser.add_argument("--dg-clang-binary", default="clang-14")
-    parser.add_argument("--dg-llvm-dis-binary", default="llvm-dis-14")
-    parser.add_argument("--dg-lli-binary", default="lli-14")
-    parser.add_argument("--dg-llvm-link-binary", default="llvm-link-14")
+    parser.add_argument("--dg-binary")
+    parser.add_argument("--dg-clang-binary")
+    parser.add_argument("--dg-llvm-dis-binary")
+    parser.add_argument("--dg-lli-binary")
+    parser.add_argument("--dg-llvm-link-binary")
     parser.add_argument("--dg-native-compile-args", default="-O0 -Wall -Wextra")
     parser.add_argument("--dg-args", default="-annotate slice")
     parser.add_argument("--dg-judge-mode", choices=("off", "hybrid", "required"), default="off")

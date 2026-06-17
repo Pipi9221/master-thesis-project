@@ -382,6 +382,43 @@ python3 -m pipeline.generate_mutants \
 - `tests/`: fixtures plus unit/integration coverage for the prototype
 - `artifacts/`: generated logs, reports, and replayable intermediate assets
 - `bugs/`: confirmed bug collection (17 Frama-C + 26 DG)
+  - `bugs/frama/`: Frama-C 30.0 (Zinc) slicing bug database — 17 confirmed bugs with root cause analysis
+    - `confirmed/`: unified bug directory (one subdirectory per bug, with symlinks to source artifacts)
+    - `issues/`: C-language feature classification (16 issues: 9 true bugs + 7 non-bugs)
+    - `defects/`: raw metamorphic testing batch experiment directories
+    - `test/`: 70+ independent C test cases and run scripts
+    - `paper-verification/`: 2026-03-27 paper verification results (root cause analyses, submission materials)
+    - See `bugs/frama/README.md` for the full index, usage guide, and relationship diagram
+  - `bugs/dg/`: DG/llvm-slicer bug collection (26 confirmed bugs)
+
+## Bug Database
+
+The `bugs/` directory contains confirmed slicing bugs discovered through metamorphic testing.
+
+### Frama-C (17 confirmed bugs)
+
+17 true bugs in Frama-C 30.0 (Zinc) organized into 8 root cause families:
+
+| # | Family | Bugs | Frama-C Source |
+|---|--------|------|----------------|
+| 1 | Init Loss | 2737, 2739, 2746, 2747, 2748 | `slicingTransform.ml:383`, `filter.ml:562,570` |
+| 2 | Over-Preservation | 2750, 2751 | `fct_slice.ml` mark propagation |
+| 3 | Dataflow Break | 2749 | Function parameter/body coherence |
+| 4 | UB-Sensitive | 2735 | Unsequenced evaluation order |
+| 5 | Export Coherence | 2740, 2741, 2742 | Symbol renaming, runtime stubs, type-system |
+| 6 | Lifecycle/Builtin | 2753-007, 2753-010, 2753-015 | Constructor/atomic/POSIX runtime support |
+| 7 | Internal NYI | 2753-016 | `logic_deps.ml:400` term-lval dependency |
+| 8 | Loop Non-Termination | 2736 | Exit condition dropped |
+
+**Quick navigation**: `bugs/frama/confirmed/README.md` — full index with severity, MR coverage, and per-bug symlinks.
+
+**Reproduction scripts**:
+- `tooling/test_frama_bugs.py` — comprehensive test harness for all 17 bugs, issues/, and defects/
+- `tooling/test_mr1_bug_detection.py` — MR1 metamorphic testing demonstration with structurally-diverse variants
+
+### DG (26 confirmed bugs)
+
+DG/llvm-slicer bugs in `bugs/dg/`. See `tooling/test_dg_bugs.py` for the reproduction harness.
 
 Read the implementation contract first:
 

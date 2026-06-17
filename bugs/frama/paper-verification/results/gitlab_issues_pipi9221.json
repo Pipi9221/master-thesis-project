@@ -1,0 +1,1086 @@
+﻿[
+    {
+        "id":  31157,
+        "iid":  2751,
+        "project_id":  780,
+        "title":  "Frama-C Slicing Tool Over-Preserves Unmodified Slice Criteria",
+        "description":  "# Report: Frama-C Slicing Tool Over-Preserves Unmodified Slice Criteria\n\n## Issue Summary\n\nFrama-C slicing tool preserves a slice criterion variable (`g_1141`) even when its value is never modified throughout program execution. According to Frama-C\u0027s slicing semantics, unmodified slice criteria should not be preserved in the sliced output, leading to over-approximation and reduced precision.\n\n## Environment Information\n\n- OS: Ubuntu 22.04.5 LTS (Jammy Jellyfish)\n- Frama-C Version: 30.0 (Zinc)\n- GCC Version: 11.4.0\n- Platform: 64-bit\n\n## Source Program\n\nThe original program contains a global variable `g_1141` which is never modified throughout program execution:\n\n\n## Slicing Command\n\n```bash\nframa-c -slice-value g_1141 source.c -then-on \u0027Slicing export\u0027 -print -ocode source_g1141_only.c\n```\n\n## Sliced Program\n\nIn the sliced output (`source_g1141_only.c`), Frama-C preserves the `g_1141` variable:\n\n```c\nstatic int16_t g_1141 = (int16_t)2L;\n...\n        {\n          int tmp_24;\n          int16_t tmp_21;\n          uint16_t l_1334 = (uint16_t)0xA497L;  \n          int16_t *l_1344 = \u0026 g_1141; // never modified\n          *p_22 \u0026= (int)l_1334;\n          if (*p_22) goto break_cont_1; // This condition is always true\n          tmp_24 = 1;\n          tmp_21 = (int16_t)tmp_24;\n          *l_1344 = tmp_21;  // Unreachable code\n          goto return_label;\n        }\n        break_cont_1: g_583 = (uint16_t)((int)g_583 + 1);\n```\n\n## Runtime Behavior\n\n- The variable `g_1141` is specified as the slicing criterion\n- The value of `g_1141` is never modified during program execution\n- The variable maintains its initial value of 2 throughout execution\n- Therefore, preserving `g_1141` in the sliced output is unnecessary\n\n## Expected Behavior\n\nAccording to Frama-C slicing semantics, when a slicing criterion\u0027s value is never modified, the variable should not be preserved in the sliced output. The sliced program should contain only the code that affects the computation of the slicing criterion\u0027s value.\n\nSince `g_1141` is never modified, it should not appear in the sliced output, and the resulting sliced program should be minimal.\n\n## Actual Behavior\n\nFrama-C preserves the `g_1141` variable in the sliced output, even though the variable\u0027s value is never modified. This results in over-approximation of the actual dependencies.\n\n## Impact\n\n1. **Reduced precision**: The sliced program contains more code than necessary\n2. **Increased complexity**: Developers must analyze variables that do not contribute to the slice criterion\n3. **Maintenance overhead**: Extra code that serves no purpose in the slice context\n\n## Conclusion\n\nThis issue demonstrates that Frama-C\u0027s slicing algorithm could be improved to provide more precise slices by recognizing when slice criteria are never modified and eliminating them from the sliced output. This would result in more accurate and concise program slices.\n\n[source.c]\n(/uploads/9dd0a8cc33181a447eff5cadf290374e/source.c)\n\n[source_g1141_only.c](/uploads/5d07f65390745c0aa0193811e3dae9fc/source_g1141_only.c)",
+        "state":  "closed",
+        "created_at":  "2025-11-24T10:41:35.959Z",
+        "updated_at":  "2025-12-17T15:42:49.637Z",
+        "closed_at":  "2025-12-17T15:42:49.457Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2751",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2751",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2751/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2751/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2751",
+                           "relative":  "#2751",
+                           "full":  "pub/frama-c#2751"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31156,
+        "iid":  2750,
+        "project_id":  780,
+        "title":  "Slicing Tool Preserves Unused Global Variable",
+        "description":  "# Report: Frama-C Slicing Tool Preserves Unused Global Variable\n\n## 1. Source Program Description\n\nThe original program contains a global variable `g_170` which is not related to the slicing criterion. When performing program slicing with Frama-C, this variable should be removed from the sliced output as it does not contribute to the computation of the slicing criterion.\n\n## 2. Slicing Command\n\n```bash\nframa-c source.c -slice-value g_163,g_73,g_115,g_183,g_153,g_283,g_7,g_258,g_1019,g_1141 -then-on Slicing export -print -ocode source_sliced.c\",\n```\n\nNote: This is not a bug, but it may affect the accuracy of slicing.\n\n## 3. Sliced Program\n\nAfter slicing, the generated program `source_sliced.c` still contains the following unused global variable:\n\n```c\nstatic int8_t g_170[1][1][1] = {{{(int8_t)0x06L}}};\n```\n\n## 4. Runtime Behavior\n\nCompilation with GCC produces the following warning:\n```\nsource_sliced.c:51:15: warning: \u0027g_170\u0027 defined but not used [-Wunused-variable]\n```\n\nThis confirms that the variable is not used anywhere in the sliced program.\n\n## 5. Environment Information\n\n- OS: Ubuntu 22.04.5 LTS (Jammy Jellyfish)\n- Frama-C Version: 30.0 (Zinc)\n- GCC Version: 11.4.0\n- Platform: 64-bit (Pointer size: 8 bytes, Integer size: 4 bytes)\n\n\nThis over-preserving behavior:\n1. Increases the size of the sliced program unnecessarily\n2. May mislead developers about which variables are actually relevant\n3. Reduces the effectiveness of program slicing as a code comprehension tool\n\n## 7. Expected Behavior\n\nThe slicing tool should analyze the program\u0027s dependence graph and determine that `g_170` has no data or control dependencies with the slicing criterion `g_7`, and therefore should be removed from the sliced output.\n\n## 8. Actual Behavior\n\nFrama-C conservatively preserves `g_170` in the sliced output, even though it\u0027s not used anywhere in the program.\n\n## 9. Impact\n\nThis over-conservative slicing behavior reduces the precision of the slicing tool and may impact:\n- Program comprehension tasks\n- Code reduction efforts\n- Security analysis where only relevant code should be examined\n\n[source.c]\n(/uploads/b7e6d0ed9d4e40a43d1ca6ab7d39085a/source.c)\n\n[source_sliced.c](/uploads/e3e2e39a934c56ce0c47105c82fd8ec2/source_sliced.c)",
+        "state":  "closed",
+        "created_at":  "2025-11-24T09:07:56.861Z",
+        "updated_at":  "2025-12-17T15:42:52.582Z",
+        "closed_at":  "2025-12-17T15:42:52.444Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2750",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2750",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2750/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2750/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2750",
+                           "relative":  "#2750",
+                           "full":  "pub/frama-c#2750"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31154,
+        "iid":  2749,
+        "project_id":  780,
+        "title":  "Incorrect Function Slicing in Frama-C",
+        "description":  "# Issue Report: Incorrect Function Slicing in Frama-C\n\n## Source Program Information\n- Source file: test.c\n- Frama-C version: 30.0 Zinc\n- Platform: Ubuntu 22.04.5 LTS\n\n## Description of the Problem\nFrama-C\u0027s slicing functionality incorrectly slices inline functions with parameters, leading to broken data flow and undefined behavior.\n\nIn particular, the inline function `realsmith_tOG6J` is incorrectly transformed during slicing:\n1. Original function correctly takes a parameter and processes it\n2. After slicing, the parameter is removed but the function body is not correctly adjusted\n3. This leads to use of uninitialized variables and undefined behavior\n\n## Slice Command Used\n```bash\nframa-c test.c -slice-value g_78,g_77,g_134,g_199,g_104,g_132,g_4,g_60,g_90,g_118,g_151 -then-on \u0027Slicing export\u0027 -print -ocode test_sliced.c\n```\n\n## Original Function (Correct)\n```c\n__attribute__((used)) static __inline unsigned int\nrealsmith_tOG6J(long num)\n{\n  const unsigned int n = (unsigned int)num;\n  return (((n \u003e\u003e 24)) \u0026 0xf);\n}\n```\n\nFunction is called as: `realsmith_tOG6J((long)(g_78)+(5))`\n\nWith `g_78 = -1`, the data flow is:\n```\ng_78 = -1 â + 5 â num = 4 â n = (unsigned int)4 â return (4 \u003e\u003e 24) \u0026 0xf = 0\n```\n\n## Sliced Function (Incorrect)\nIn the sliced version (`mutant_sliced.c`), the function becomes:\n```c\n__inline static unsigned int realsmith_tOG6J_slice_1(void) __attribute__((__used__));\n__inline static unsigned int realsmith_tOG6J_slice_1(void)\n{\n  unsigned int __retres;\n  /* Expression loss: original call was realsmith_tOG6J((long)(g_78)+(5))\n   * where g_78 = -1, so n = (unsigned int)(-1 + 5) = 4\n   * The parameter expression was lost during slicing */\n  unsigned int const n = (unsigned int)4UL;\n  __retres = (n \u003e\u003e 24) \u0026 (unsigned int)0xf;\n  return __retres;\n}\n```\n\nAnd it\u0027s called as:\n```c\ntmp_20 = realsmith_tOG6J_slice_1();\n```\n\nWhile in another case (`source_sliced.c`), the function is even more incorrectly sliced:\n```c\n__inline static unsigned int realsmith_tOG6J_slice_1(void)\n{\n  unsigned int __retres;\n  unsigned int const n;  // Uninitialized!\n  __retres = (n \u003e\u003e 24) \u0026 (unsigned int)0xf;\n  return __retres;\n}\n```\n\n## Issues Identified\n1. **Data Flow Breakage**: The parameter-dependent computation chain is broken\n2. **Uninitialized Variables**: In some cases, variables are left uninitialized\n3. **Inconsistent Behavior**: Different slicing results for similar inputs\n4. **Undefined Behavior**: Use of uninitialized variables leads to unpredictable program behavior\n\n## Expected vs Actual Behavior\n**Expected**: The sliced function should either:\n1. Keep the parameter and correctly process the input data flow, or\n2. Properly constant-fold the expression if it\u0027s statically determinable, or\n3. Inline the function body at call site with correct parameter substitution\n\n**Actual**: The slicing removes the parameter but doesn\u0027t correctly adjust the function body, resulting in either uninitialized variables or hardcoded constants that may not reflect the actual computed values.\n\n## Impact\nThis bug can lead to:\n1. Silent incorrect program behavior\n2. Hard-to-debug issues due to undefined behavior\n3. Programs that appear to work but produce incorrect results\n4. Non-reproducible bugs across different environments\n\n[test.c](/uploads/7408759ad3b6f8716fdaf45050c3bdd1/test.c)\n[test_sliced_with_printf_.c](/uploads/08861c9b5e1c4b294419434883757c9f/test_sliced_with_printf_.c)",
+        "state":  "closed",
+        "created_at":  "2025-11-22T13:57:14.743Z",
+        "updated_at":  "2025-12-17T15:42:55.338Z",
+        "closed_at":  "2025-12-17T15:42:55.230Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2749",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2749",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2749/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2749/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2749",
+                           "relative":  "#2749",
+                           "full":  "pub/frama-c#2749"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31153,
+        "iid":  2748,
+        "project_id":  780,
+        "title":  "Missing Pointer Dependency in Frama-C Slicing",
+        "description":  "# Issue Report: Missing Pointer Dependency in Frama-C Slicing\n\n## Summary\nWhen slicing a Csmith-generated program (provided as `source.c`), Frama-C removes the pointer chain that ties global `g_1488` to the slicing criteria. The sliced program (`source_sliced.c`) no longer preserves the observable value of `g_167`, violating slicing semantics. After manually restoring the pointer chain in `source_sliced_fixed.c`, `g_167` returns to the correct value.\n\n## Command\n```bash\nframa-c source.c -slice-value g_89,g_277,g_76,g_167,g_326,g_329,g_336,g_85,g_333,g_44,g_80,g_128,g_166,g_364,g_450 -then-on Slicing export -print -ocode source_sliced.c\n```\n\n## Files Attached\n1. `source.c` â Original program with diagnostic prints retained.[source.c](/uploads/b3f9d7e85aff38711bcd4ab79a8ae158/source.c)\n2. `source_sliced_modified_printf.c` â Frama-Câs slicing output, showing the problematic removal of the pointer chain.[source_sliced_modified_printf.c](/uploads/3975504ca61efae217c33ff01b89f559/source_sliced_modified_printf.c)\n3. `source_sliced_fixed.c` â Manually patched sliced program that restores the pointer dependency on `g_1488/g_1883`.[source_sliced_fixed.c](/uploads/93dfe565ed87361731b2ea8c222ab2de/source_sliced_fixed.c)\n\n## Steps to Reproduce\n1. Compile and run the original program to get the correct reference value:\n   ```bash\n   gcc source.c -o source_original\n   ./source_original\n   ```\n   Observe the output: `g_167 = 15785518536639561699` (printed near the end with other globals).\n\n2. Compile and run Frama-Câs sliced program to verify the error:\n   ```bash\n   gcc source_sliced.c -o source_sliced\n   ./source_sliced\n   ```\n   The sliced version outputs `g_167 = 15785518536639561645` â a mismatch from the original, even though `g_167` is in the slicing criteria.\n\n3. Compile and run the manually fixed sliced program to confirm the root cause:\n   ```bash\n   gcc source_sliced_fixed.c -o source_sliced_fixed\n   ./source_sliced_fixed\n   ```\n   The fixed program outputs `g_167 = 15785518536639561699`, matching the original programâs result.\n\n## Root Cause\nIn `source.c:247-404`, a pointer chain connects `g_1488` to `l_2830`, and this chain is compared against `g_1883` to compute `*g_2499` (an alias for `g_277`). However, Frama-Câs sliced output (`source_sliced.c`) replaces the valid pointer chain with null pointers:\n```c\n/* In source_sliced.c */\nuint32_t const ****l_2830 = (void*)0;\nuint32_t const *****l_2829 = \u0026l_2830;\n```\nThis makes the condition `(l_2834 = l_2829) == l_2835` always true. As a result, `*g_2499` ignores real program data, which corrupts the value of `g_277` and ultimately leads to the incorrect `g_167` in the sliced program.\n\n## Temporary Fix\nIn `source_sliced_fixed.c`, the missing pointer chain and global dependencies were restored:\n```c\nstatic uint32_t g_1488[2][9] = { ... }; // Original initialization retained\nstatic uint32_t *g_1883[3] = { \u0026g_1488[0][7], \u0026g_1488[0][7], \u0026g_1488[0][7] };\n\n// Restore the full pointer chain leading to l_2829\nconst uint32_t *l_2833 = \u0026g_1488[0][6];\nconst uint32_t **l_2832 = \u0026l_2833;\nconst uint32_t ***l_2831 = \u0026l_2832;\nconst uint32_t ****l_2830 = \u0026l_2831;\nconst uint32_t *****l_2829 = \u0026l_2830;\n```\nWith these definitions restored, `*g_2499` correctly depends on the original program state, and `g_167` returns to its correct value.\n\n## Expected Behavior\nFrama-Câs slicing tool should retain all dependencies that influence the slicing criteria â even if those dependencies come from globals not explicitly listed in the `-slice-value` argument. Removing the pointer chain breaks semantic equivalence between the original and sliced programs, which violates the core purpose of program slicing.",
+        "state":  "closed",
+        "created_at":  "2025-11-22T12:38:34.598Z",
+        "updated_at":  "2025-12-17T15:43:02.712Z",
+        "closed_at":  "2025-12-17T15:43:02.486Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2748",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2748",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2748/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2748/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2748",
+                           "relative":  "#2748",
+                           "full":  "pub/frama-c#2748"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31152,
+        "iid":  2747,
+        "project_id":  780,
+        "title":  "Frama-C Slicing Tool Issue: Uninitialized Variable Leading to Division by Zero",
+        "description":  "# Frama-C Slicing Tool Issue: Uninitialized Variable Leading to Division by Zero\n\n## 1. Source Program Description\n\nThe original program contains a local constant variable `l_488` in function `func_35_slice_1` that is used as a divisor in a modulo operation. In the original (non-sliced) program, this variable is properly initialized to `0xCC21L` (52257 in decimal), preventing any undefined behavior. Although `l_488` is a local variable and does not directly appear in the slicing criteria, it indirectly affects global variables that are part of the slicing criteria through computations.\n\n## 2. Slicing Command\n\nThe program was sliced using Frama-C with slicing criteria targeting specific global variables:\n\n```bash\nframa-c source.c -slice-value g_6,g_106,g_109,g_9,g_13,g_71,g_14,g_158,g_161,g_221 -then-on \u0027Slicing export\u0027 -print -ocode source_sliced.c\n```\n\n## 3. Sliced Program Issues\n\n### Source Sliced Program\n\nIn the sliced source program (`source_sliced.c`), the Frama-C slicer incorrectly removes the initialization of the local variable `l_488`:\n\n```c\nstatic void func_35_slice_1(uint16_t p_39)\n{\n  uint64_t l_482;\n  uint16_t const l_488;  // Uninitialized! Originally initialized to 0xCC21L (52257)\n  // ...\n  tmp_5 = safe_mod_func_int64_t_s_s_slice_1((int64_t)(\u0026 g_244 != \u0026 g_244),\n                                            (int64_t)l_488);  // Using uninitialized l_488 as divisor\n}\n```\n\nThe `safe_mod_func_int64_t_s_s_slice_1` function performs the actual modulo operation:\n\n```c\nstatic int64_t safe_mod_func_int64_t_s_s_slice_1(int64_t si1, int64_t si2)\n{\n  int64_t tmp;\n  tmp = si1 % si2;  // Division by zero occurs here when si2 is zero\n  return tmp;\n}\n```\n\nWhen `l_488` is uninitialized and happens to contain zero, this leads to undefined behavior causing a SIGFPE (floating point exception) and program crash. Although `l_488` is not directly part of the slicing criteria, it affects variables like `g_109` and `g_158` which are in the slicing criteria:\n\n```c\n// l_488 indirectly affects g_109 (which is in slicing criteria)\n*l_489 |= tmp_7 ^ (int)l_488;  // l_489 points to g_109\n\n// l_488 indirectly affects g_158 (which is in slicing criteria)\nwhile (l_482 \u003c= (uint64_t)1) {\n  g_158 = (int64_t)1;\n  while (g_158 \u003e= (int64_t)0) g_158 -= (int64_t)1;\n  l_482 += (uint64_t)1;\n}\n```\n\n### Analysis of Different Initialization Values\n\nAn important aspect of this issue is understanding why different non-zero values for `l_488` produce the same program behavior, while zero causes a crash:\n\nIn the specific case of this program, the dividend in the modulo operation is always zero:\n\n```c\ntmp_5 = safe_mod_func_int64_t_s_s_slice_1((int64_t)(\u0026 g_244 != \u0026 g_244), (int64_t)l_488);\n```\n\nSince `(\u0026 g_244 != \u0026 g_244)` is always false, this is equivalent to `0 % l_488`.\n\nMathematically:\n\n- `0 % 1 = 0`\n- `0 % 2 = 0`\n- `0 % 65535 = 0`\n\nAll non-zero divisors produce the same result (0) when the dividend is zero. This is why initializing `l_488` to any non-zero value (whether 1, 52257 or 65535) produces the same program behavior and avoids the division by zero error.\n\nHowever, this is just a special mathematical case. In general:\n\n- `100 % 1 = 0`\n- `100 % 2 = 0`\n- `100 % 65535 = 100`\n\nDifferent divisors would produce different results with a non-zero dividend. The Frama-C slicer should not rely on such special cases to justify removing variable initializations.\n\nIn the original program, `l_488` is initialized to `0xCC21L` (52257 in decimal), which is a non-zero value that would not cause any division by zero errors.\n\n## 4. Runtime Behavior\n\n| Program          | Status       | Exit Code | Notes                                     |\n| ---------------- | ------------ | --------- | ----------------------------------------- |\n| `source_program` | â\u0085 Normal     | 0         | Runs correctly                            |\n| `source_sliced`  | â **SIGFPE** | 136       | **Crashes with Floating Point Exception** |\n\n### Test Results with Explicit Initialization\n\nTo verify the issue, we explicitly initialized `l_488` to different values:\n\n- **Source program with `l_488 = 0`**: Consistently crashes with SIGFPE\n- **Source program with `l_488 = 1`**: Runs normally\n- **Source program with `l_488 = 52257`** (original value): Runs normally\n- **Source program with `l_488 = 65535`**: Runs normally\n\n## 5. Root Cause Analysis\n\nThe fundamental issue is that Frama-C\u0027s slicing algorithm incorrectly determines that the initialization of `l_488` is not necessary for preserving the slicing criteria. However:\n\n1. **Semantic Inconsistency**: The sliced program no longer preserves the semantics of the original program\n2. **Undefined Behavior**: Using uninitialized variables leads to undefined behavior, which in this case manifests as a division by zero\n3. **Safety Critical**: Variables used in arithmetic operations (especially as divisors) must be properly initialized, even if they are not directly part of slicing criteria\n\n## 6. Environment Information\n\n- **Operating System**: Ubuntu 22.04.5 LTS\n- **Frama-C Version**: 30.0 (Zinc)\n- **GCC Version**: 11.4.0\n- **Platform Info**: x86_64\n\n## 7. Expected Behavior\n\nThe Frama-C slicer should:\n\n1. Preserve all variable initializations that could affect program semantics\n2. Specifically protect variables used in arithmetic operations (especially as divisors)\n3. Maintain the property that sliced programs have the same observable behavior as the original for the slicing criteria\n\n## 8. Recommendations\n\n1. **Enhance slicing algorithm** to properly identify safety-critical initializations\n2. **Special protection** for variables used as divisors, array indices, and pointer offsets\n3. **Improve dependency analysis** to correctly track initialization dependencies for semantic preservation\n\n[source.c]\n(/uploads/fb871e2c316d3eac2b304e3f87f8bfc3/source.c)\n\n[source_sliced.c](/uploads/d57c082c47278d7ec1e73a77790ea166/source_sliced.c)",
+        "state":  "closed",
+        "created_at":  "2025-11-22T08:15:57.758Z",
+        "updated_at":  "2025-12-17T15:43:06.439Z",
+        "closed_at":  "2025-12-17T15:43:06.250Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2747",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2747",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2747/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2747/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2747",
+                           "relative":  "#2747",
+                           "full":  "pub/frama-c#2747"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31125,
+        "iid":  2746,
+        "project_id":  780,
+        "title":  "Frama-C Slicing Loses Initialization Expression",
+        "description":  "# Bug Report: Frama-C Slicing Loses Initialization Expression\n\n## Issue Summary\n\nFrama-C slicing tool incorrectly removes initialization expressions, leading to undefined behavior in sliced programs.\n\n## Environment\n\n- OS: Ubuntu 22.04.5 LTS (Jammy Jellyfish)\n- Frama-C Version: 30.0 (Zinc)\n- GCC Version: 11.4.0\n- Platform: 64-bit (Pointer size: 8 bytes, Integer size: 4 bytes)\n\n## Test Case Location\n\nKey files:\n- `test.c`: Original program\n- `g_391_sliced.c`: Sliced program\n\n## Description\n\nWhen performing slicing on variable `g_391`, Frama-C incorrectly slices away the initialization expression in function `realsmith_7QoqD`. \n\ncommand:\nframa-c test.c -slice-value g_391 -then-on \u0027Slicing export\u0027 -print -ocode g_391_sliced.c\n\nOriginal code:\n```c\nlong const realsmith_7QoqD (const long const v, const long const m)\n{\n  if (m == 0) return v;\n  const long const r = v % m;  // This initialization is lost\n  if (r == 0) return v;\n  return v + m - r;\n  // ...\n}\n```\n\nIncorrectly sliced code:\n```c\nlong realsmith_7QoqD_slice_1(long const v, long const m)\n{\n  long __retres;\n  long const r; // Initialization lost\n  __retres = (v + m) - r;\n  return __retres;\n}\n```\n\n## Impact\n\nThis loss of initialization causes undefined behavior because the uninitialized variable `r` contains random values from memory. This leads to unpredictable program behavior and inconsistent results between runs.\n\nAs demonstrated in our tests:\n1. First execution of the sliced program: `r` happened to contain 0\n2. Second execution: `r` contained a large random value (97581548039600)\n3. This causes completely different computation results\n\n## Expected Behavior\n\nThe slicing should preserve all necessary initialization expressions to maintain program semantics. The sliced program should behave consistently and predictably.\n\n## Actual Behavior\n\nThe sliced program exhibits undefined behavior due to missing initialization, causing inconsistent results between executions.[g_391_sliced.c](/uploads/d26713bd14897b48737ebadcd2b23c17/g_391_sliced.c)\n\n[test.c](/uploads/03c7bdcc8ceeae9571f50f39662a1eed/test.c)",
+        "state":  "closed",
+        "created_at":  "2025-11-15T19:26:26.112Z",
+        "updated_at":  "2025-12-17T15:43:10.442Z",
+        "closed_at":  "2025-12-17T15:43:10.274Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2746",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2746",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2746/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2746/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2746",
+                           "relative":  "#2746",
+                           "full":  "pub/frama-c#2746"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31111,
+        "iid":  2742,
+        "project_id":  780,
+        "title":  "[Slicing]va_list Type Assignment Error in Sliced Code",
+        "description":  "# va_list Type Assignment Error in Sliced Code\n[test.c](/uploads/884e867f0ccf103292145731a674633a/test.c)\n\n[test_sliced.c](/uploads/f73b5df07516d43c2591cbe2f225ff1f/test_sliced.c)\n\n## Issue Summary\n\nFrama-C slicing tool generates code with invalid assignment to array type when slicing programs with variable arguments (`...`). The sliced program attempts to assign a pointer to `va_list` which is an array type, causing compilation errors.\n\n## Source Program\n\nThe source program `test.c` contains functions that use variable arguments:\n\n```c\n// test.c\n#include \u003cstdio.h\u003e\n#include \u003cstdarg.h\u003e\n\nstatic int g_sum = 0;\n\nint sum_with_side_effect(int count, ...) {\n    va_list args;\n    va_start(args, count);\n    int total = 0;\n    for (int i = 0; i \u003c count; i++) {\n        int val = va_arg(args, int);\n        total += val;\n        g_sum += val;\n    }\n    va_end(args);\n    return total;\n}\n\nint sum_simple(int count, ...) {\n    va_list args;\n    va_start(args, count);\n    int total = 0;\n    for (int i = 0; i \u003c count; i++) {\n        total += va_arg(args, int);\n    }\n    va_end(args);\n    return total;\n}\n\nint main(void) {\n    int val = 10;\n    \n    // Variable argument function calls\n    int r1 = sum_with_side_effect(3, 10, 20, 30);\n    \n    // Multiple calls\n    int r2 = sum_simple(4, 1, 2, 3, 4);\n    int r3 = sum_with_side_effect(2, val, val + 10);\n    \n    // In expressions\n    int r4 = sum_with_side_effect(2, r1, r2) + sum_simple(2, r3, val);\n    \n    // In conditionals\n    if (sum_with_side_effect(1, val) \u003e 50) {\n        val += 10;\n    }\n    \n    int result = val + r1 + r2 + r3 + r4 + g_sum;\n    printf(\"Result: %d\\n\", result);\n    return result;\n}\n```\n\nThis program compiles and runs successfully:\n```bash\n$ gcc -o test_original test.c \u0026\u0026 ./test_original\nResult: 390\n$ echo $?\n134\n```\n\n## Slice Command\n\nThe slicing command used:\n```bash\nframa-c test.c \\\n  -slice-value result \\\n  -then-on \u0027Slicing export\u0027 \\\n  -print \\\n  -ocode test_sliced.c\n```\n\n## Sliced Program\n\nThe sliced program generated by Frama-C (`test_sliced.c`):\n\n```c\n/* Generated by Frama-C */\n#include \"stdarg.h\"\n#include \"stddef.h\"\n#include \"stdio.h\"\nstatic int g_sum = 0;\nint sum_with_side_effect_slice_1(int count, void * const *__va_params)\n{\n  va_list args;\n  args = __va_params;  // â Error: cannot assign to array type\n  int total = 0;\n  {\n    int i = 0;\n    while (i \u003c count) {\n      {\n        int tmp;\n        tmp = *((int *)*args);  // â Error: cannot convert to pointer type\n        args ++;                // â Error: lvalue required as increment operand\n        int val = tmp;\n        total += val;\n        g_sum += val;\n      }\n      i ++;\n    }\n  }\n  return total;\n}\n\n// Similar errors in sum_simple_slice_1...\n\nint main(void)\n{\n  // ... main function with transformed variable arguments\n}\n```\n\n## What Happens When Running\n\n1. **Compilation fails** with multiple errors:\n   ```bash\n   $ gcc -o test_sliced test_sliced.c\n   test_sliced.c:9:8: error: assignment to expression with array type\n   test_sliced.c:16:9: error: cannot convert to a pointer type\n   test_sliced.c:17:14: error: lvalue required as increment operand\n   ```\n\n2. **Root cause**: In most C implementations, `va_list` is an array type:\n   ```c\n   typedef char va_list[24];  // Example on x86_64 Linux\n   ```\n\n3. **Problem**: Frama-C converts `...` parameters to `void * const *__va_params` (pointer type) but tries to assign it to `va_list args` (array type), which violates C language rules.\n\n4. **Additional issues**: Even if assignment worked, the code attempts to perform pointer arithmetic (`args++`) on an array type, which is also invalid.\n\n## Root Cause\n\nThe slicing tool:\n- â\u0085 Converts `...` parameters to `void * const *__va_params` (pointer type)\n- â Attempts to assign pointer to `args` which is `va_list` (array type)\n- â Violates C language syntax rules for array assignment\n- â Attempts invalid pointer arithmetic on array type\n\nArrays cannot be assigned directly in C:\n```c\nint arr1[10];\nint arr2[10];\narr1 = arr2;  // â Error: arrays cannot be assigned\n```\n\n## Workaround\n\n### Option 1: Use memcpy (Partially works)\n```c\n#include \u003cstring.h\u003e\nint sum_with_side_effect_slice_1(int count, void * const *__va_params) {\n    va_list args;\n    memcpy(\u0026args, \u0026__va_params, sizeof(va_list));  // â\u0085 Use memcpy for assignment\n    // But pointer arithmetic still problematic\n}\n```\n\n### Option 2: Preserve original va_start/va_end (Recommended)\n```c\nint sum_with_side_effect_slice_1(int count, ...) {\n    va_list args;\n    va_start(args, count);  // â\u0085 Preserve original approach\n    // ... rest of implementation using va_arg, va_end\n    va_end(args);\n}\n```",
+        "state":  "closed",
+        "created_at":  "2025-11-11T09:25:12.486Z",
+        "updated_at":  "2025-12-17T15:43:14.199Z",
+        "closed_at":  "2025-12-17T15:43:13.932Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2742",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2742",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2742/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2742/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2742",
+                           "relative":  "#2742",
+                           "full":  "pub/frama-c#2742"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31110,
+        "iid":  2741,
+        "project_id":  780,
+        "title":  "Slicing Link Error: Undefined Reference to `__fc_vla_alloc",
+        "description":  "# VLA Slicing Link Error: Undefined Reference to `__fc_vla_alloc`\n\n## Issue Summary\n\nFrama-C slicing tool generates code with undefined function reference when slicing programs with Variable Length Arrays (VLA). The sliced program calls `__fc_vla_alloc` function but the function is not defined, causing link errors.\n\n## Source Program\n\n```c\n// test_label_and_vla.c\n#include \u003cstdio.h\u003e\n\nint main(void) {\n    int x = 1;\n    int n = 5;\n    \n    if (x \u003e 0) {\n        int arr[n];  // VLA\n        for (int i = 0; i \u003c n; i++) {\n            arr[i] = i;\n            x += arr[i];\n        }\n    }\n    \n    L1:\n    x += 10;\n    \n    int result = x;\n    return result;\n}\n```\n\n## Slice Command\n\n```bash\nframa-c test_label_and_vla.c \\\n  -slice-value result \\\n  -then-on \u0027Slicing export\u0027 \\\n  -print \\\n  -ocode test_label_and_vla_sliced.c\n```\n\n## Sliced Program\n\n```c\n/* Generated by Frama-C */\n#include \"stddef.h\"\n#include \"stdio.h\"\n __attribute__((__FC_BUILTIN__)) void *__fc_vla_alloc(unsigned long size);\n\nint main(void)\n{\n  int x = 1;\n  int n = 5;\n  {\n    unsigned long __lengthof_arr;\n    __lengthof_arr = (unsigned long)n;\n    int *arr = __fc_vla_alloc(sizeof(int) * __lengthof_arr);\n    {\n      int i = 0;\n      while (i \u003c n) {\n        *(arr + i) = i;\n        x += *(arr + i);\n        i ++;\n      }\n    }\n    ;\n  }\n  x += 10;\n  int result = x;\n  return result;\n}\n```\n\n## Compilation Error\n\n```bash\ngcc -o test_sliced test_label_and_vla_sliced.c\n```\n\nError:\n```\n/usr/bin/ld: /tmp/ccCuYTwH.o: in function `main\u0027:\ntest_label_and_vla_sliced.c:(.text+0x2f): undefined reference to `__fc_vla_alloc\u0027\ncollect2: error: ld returned 1 exit status\n```\n\n## Root Cause\n\nThe slicing tool:\n- â\u0085 Converts VLA to dynamic allocation using `__fc_vla_alloc`\n- â\u0085 Generates function **declaration**\n- â\u0085 Generates function **call**\n- â **Does NOT provide the function definition**",
+        "state":  "closed",
+        "created_at":  "2025-11-11T08:08:24.346Z",
+        "updated_at":  "2025-12-17T15:43:17.961Z",
+        "closed_at":  "2025-12-17T15:43:17.836Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2741",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2741",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2741/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2741/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2741",
+                           "relative":  "#2741",
+                           "full":  "pub/frama-c#2741"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31109,
+        "iid":  2740,
+        "project_id":  780,
+        "title":  "Function Pointer References Not Updated After Slicing, Causing Link Errors",
+        "description":  "# Bug: Function Pointer Indirect Call Slicing Error\n\n## Summary\n\nFrama-C slicing tool generates incorrect code when slicing programs with function pointer indirect calls. The sliced program references non-existent functions, causing link errors.\n\n## Steps to Reproduce\n\n**Source code** (`test.c`):\n\n```c\n#include \u003cstdio.h\u003e\n\ntypedef int (*func_ptr_t)(int, int*);\n\nint add_func(int x, int *p) {\n    *p += x;\n    return *p;\n}\n\nint mul_func(int x, int *p) {\n    *p *= x;\n    return *p;\n}\n\nfunc_ptr_t get_func(int choice) {\n    if (choice == 1) return add_func;\n    if (choice == 2) return mul_func;\n    return NULL;\n}\n\nint main(void) {\n    int val = 10;\n    int choice = 1;\n    \n    func_ptr_t fp = get_func(choice);\n    int result1 = fp(5, \u0026val);\n    \n    choice = 2;\n    fp = get_func(choice);\n    int result2 = fp(3, \u0026val);\n    \n    int result = result1 + result2 + val;\n    printf(\"Result: %d\\n\", result);\n    return result;\n}\n```\n\n**Slice command**:\n```bash\nframa-c test.c \\\n  -slice-value result \\\n  -then-on \u0027Slicing export\u0027 \\\n  -print \\\n  -ocode test_sliced.c\n```\n\n**Compile sliced program**:\n```bash\ngcc -o test_sliced test__sliced.c\n```\n\n## Expected vs Actual\n\n**Expected**: Sliced program compiles and runs correctly (Result: 105)\n\n**Actual**: Link error:\n```\nundefined reference to `add_func\u0027\nundefined reference to `mul_func\u0027\n```\n\n## Problem\n\nThe sliced code contains:\n\n```c\nfunc_ptr_t get_func_slice_1(int choice)\n{\n  if (choice == 1) {\n    __retres = \u0026 add_func;  // â add_func does not exist\n  }\n  __retres = \u0026 mul_func;    // â mul_func does not exist\n}\n```\n\nThe slicing tool:\n- â\u0085 Generates sliced functions: `add_func_slice_1`, `mul_func_slice_1`\n- â\u0085 Removes original functions: `add_func`, `mul_func`\n- â **Does NOT update function pointer references**\n\n## Root Cause\n\nFunction pointer references are not updated to point to sliced functions after function renaming.\n\n## Workaround\n\nManually change function pointer to point to sliced functions:\n```c\n__retres = \u0026 add_func_slice_1;  // â\u0085\n__retres = \u0026 mul_func_slice_1;  // â\u0085\n```\n\n\n## Notes\n\n- Source program is valid (compiles and runs correctly)\n- Both `-slice-value` and `-slice-return` produce the same issue\n- After fixing, original function declarations become redundant\n\n[test.c](/uploads/a4be0576315b31a2d105a2ae539876e9/test.c)\n\n[test_sliced.c](/uploads/01af53f3077d5c574a26327e24081b97/test_sliced.c)",
+        "state":  "closed",
+        "created_at":  "2025-11-11T07:56:39.763Z",
+        "updated_at":  "2025-12-17T15:43:20.612Z",
+        "closed_at":  "2025-12-17T15:43:20.443Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2740",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2740",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2740/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2740/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2740",
+                           "relative":  "#2740",
+                           "full":  "pub/frama-c#2740"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31085,
+        "iid":  2739,
+        "project_id":  780,
+        "title":  "Pointer Initialization Lost When Target Variable Not in Slice Criterion",
+        "description":  "# Pointer Initialization Lost When Target Variable Not in Slice Criterion\n\n## Description\n\nWhile slicing on variable `g_34`, the pointer initialization `l_2338 = \u0026g_1320` was removed from the slice, and the target variable `g_1320` was not included. This leaves the pointer `l_2338` uninitialized, causing undefined behavior when it is dereferenced in the sliced code. The sliced program produces incorrect results compared to the original program.\n\n## Steps To Reproduce\n\n```bash\nframa-c test.c -slice-value g_34 -then-on \u0027Slicing export\u0027 -print -ocode slice.c\ngcc test.c -o test \u0026\u0026 ./test\ngcc slice.c -o slice \u0026\u0026 ./slice\n```\n\n**Original program output**: `g_34: -1628632859`  \n**Sliced program output**: `g_34: -1091728407` (incorrect)\n\nIn the sliced code, the pointer `l_2338` is declared but not initialized, and `g_1320` is missing from the slice.\n\nAfter manually adding `g_1320` and restoring the pointer initialization in the sliced code:\n```c\nstatic int32_t g_1320 = 4L;[slice.c](/uploads/9f73e30e82a37c83fec2447a17b8b9a7/slice.c)\n\n[test.c](/uploads/7ba319fb95aea0d9c56dfe330624cbcd/test.c)\nint32_t * const l_2338 = \u0026g_1320;\n```\nThe sliced program produces the correct result: `g_34: -1628632859`, matching the original program.\n\n## Attachments\n\n- `test.c` - The original program\n- `slice.c` - The output from Frama-C slicing\n[](url)",
+        "state":  "closed",
+        "created_at":  "2025-11-04T16:30:54.220Z",
+        "updated_at":  "2025-12-17T15:43:24.200Z",
+        "closed_at":  "2025-12-17T15:43:23.756Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  2,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2739",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2739",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2739/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2739/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2739",
+                           "relative":  "#2739",
+                           "full":  "pub/frama-c#2739"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31077,
+        "iid":  2737,
+        "project_id":  780,
+        "title":  "Const Array Initialization Lost During Slicing",
+        "description":  "# Bug Report: Const Array Initialization Lost During Slicing\n[source_slice.c](/uploads/51aa7d667633d396d9552981f697c581/source_slice.c)\n\n[source_slice_g203_only.c](/uploads/5abaaf2a9992bbac8a28ea30c49d3f33/source_slice_g203_only.c)\n\n[source_slice_g203_only_fixed.c](/uploads/95e156a4d3d2fbfb6c561b3a53dbd79f/source_slice_g203_only_fixed.c)\n\n## Summary\n\nFrama-C\u0027s slicing feature incorrectly removes initialization values from `const` local arrays that are used in computations. This causes the sliced program to read uninitialized memory, leading to incorrect results.\n\n## Environment\n\n- **Frama-C version**: [please specify]\n- **Platform**: [please specify]\n- **Compiler**: [please specify]\n\n## Description\n\nWhen performing backward slicing on a target variable, Frama-C correctly identifies and preserves local arrays that are used in the computation path. However, it fails to preserve the initialization values of `const` arrays.\n\nThis is a **miscompilation** issue: the slicing tool successfully generates compilable code, but the sliced program produces incorrect results compared to the original program.\n\n### Expected Behavior\n\nThe sliced program should preserve both the declaration and initialization of variables that are used in the slice criterion\u0027s computation path, maintaining semantic equivalence with the original program.\n\n### Actual Behavior\n\nThe initialization of `const` local arrays is removed during slicing, resulting in:\n- â\u0085 Array declarations are preserved (correct)\n- â Array initializations are lost (incorrect)\n- â The sliced program reads uninitialized memory\n- â Results differ from the original program\n\n## Steps to Reproduce\n\n### 1. Prepare the Source File\n\nUse the provided test file (see Attachments section) or create a program with the following structure:\n\n```c\nstatic int16_t g_203 = 0x07C0L;\nstatic int16_t *g_2774 = \u0026g_203;\nstatic int16_t **g_2778 = \u0026g_2774;\n\nstatic void func_1(void) {\n    const uint64_t l_4351[3] = {18446744073709551610UL,\n                                18446744073709551610UL,\n                                18446744073709551610UL};\n    \n    // Array element l_4351[1] is used in calculation affecting g_203\n    // ... (see attached file for complete code) ...\n}\n\nint main(void) {\n    func_1();\n    printf(\"g_203: %d\\n\", g_203);\n    return 0;\n}\n```\n\n### 2. Run Frama-C Slicing\n\n```bash\nframa-c source.c -slice-value g_203 -then-on \u0027Slicing export\u0027 -print -ocode sliced.c\n```\n\n### 3. Observe the Issue\n\n**Original code (correct)**:\n```c\nstatic void func_1(void) {\n    const uint64_t l_4351[3] = {18446744073709551610UL,  // â\u0085 Initialized\n                                18446744073709551610UL,\n                                18446744073709551610UL};\n    // ... uses l_4351[1] ...\n}\n```\n\n**Sliced code (incorrect)**:\n```c\nstatic void func_1_slice_1(void) {\n    uint64_t const l_4351[3];  // â Missing initialization!\n    // ... uses l_4351[1] ... (reads uninitialized memory)\n}\n```\n\n### 4. Verify the Problem\n\nCompile and run both programs:\n\n```bash\n# Original program\ngcc -O0 source.c -o original\n./original\n# Output: g_203: -53\n\n# Sliced program  \ngcc -O0 sliced.c -o sliced\n./sliced\n# Output: g_203: -59  (incorrect!)\n```\n\n**Note**: You may see compiler warnings about uninitialized variable usage:\n```\nsliced.c:127: warning: \u0027l_4351[1]\u0027 may be used uninitialized [-Wmaybe-uninitialized]\n```\n\n## Impact\n\n- **Severity**: High - the sliced program produces incorrect results\n- **Correctness**: The sliced program violates program slicing semantics (should preserve behavior for the slice criterion)\n- **Undefined Behavior**: Reading uninitialized memory can lead to undefined behavior\n\n## Analysis\n\n### What Works Correctly\n\n1. **Data dependency identification**: The slicing algorithm correctly identifies that `l_4351[1]` is used in the computation path to `g_203`\n2. **Variable declaration preservation**: The array declaration is preserved in the sliced code\n\n### What Fails\n\n1. **Initialization value preservation**: The array initialization is removed, even though:\n   - The array is marked as `const` (must be initialized at declaration in C)\n   - Array elements are actively used in calculations affecting the slice criterion\n   - The initialization values are a data dependency source for the slice criterion\n\n### Likely Cause\n\nThis appears to be a failure in the dependency graph construction:\n- The **use** of `l_4351[1]` is correctly tracked (dependency edge: use â declaration)\n- The **initialization** of `l_4351` is **not** recognized as a dependency source\n- The initialization statement is filtered out during slice extraction\n\nThe slicing algorithm may be treating declaration-time initialization as a \"definition\" node rather than an \"assignment\" node, or may not be creating the proper dependency edge from the array usage to its initialization.\n\n## Workaround\n\nManually restore the array initialization in the sliced code:\n\n```c\n// Change from:\nuint64_t const l_4351[3];\n\n// To:\nuint64_t const l_4351[3] = {18446744073709551610UL,\n                            18446744073709551610UL,\n                            18446744073709551610UL};\n```\n\nAfter applying this fix, the sliced program produces the correct result (`g_203 = -53`).\n\n## Additional Information\n\n### Related Patterns\n\nThis issue may be part of a broader pattern affecting:\n- `const` local variables (both scalars and arrays) with initialization at declaration\n- Variables where declaration-time initialization is treated differently from explicit assignments in the dependency graph\n\n### Verification\n\nTo verify the issue without running the full program, compile the sliced code with:\n```bash\ngcc -Wall -Werror sliced.c\n```\n\nThis should produce warnings/errors about uninitialized variable usage.\n\n## Attachments\n\nPlease include the following files when submitting:\n\n1. **Source file** (`source.c`): The original program\n2. **Sliced file** (`sliced.c`): The output from Frama-C slicing\n3. **Expected output**: `g_203: -53`\n4. **Actual output**: `g_203: -59`\n\n### Test Results Summary\n\n| Program Version | g_203 Value | Status |\n|----------------|-------------|--------|\n| Original program | `-53` | â\u0085 Correct |\n| Sliced program | `-59` | â Incorrect |\n| Sliced program (with manual fix) | `-53` | â\u0085 Correct |[source.c](/uploads/c8fbfedd25e04259b274cdcf639c76ab/source.c)",
+        "state":  "closed",
+        "created_at":  "2025-10-31T08:21:36.592Z",
+        "updated_at":  "2025-12-17T15:42:43.305Z",
+        "closed_at":  "2025-12-17T15:42:42.974Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2737",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2737",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2737/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2737/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2737",
+                           "relative":  "#2737",
+                           "full":  "pub/frama-c#2737"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31059,
+        "iid":  2736,
+        "project_id":  780,
+        "title":  "[Slicing] Performance-Critical Loop Exit Condition Removed, Causing Infinite Loop",
+        "description":  "### Steps to reproduce the issue\n\n**1. Use the provided test program:** `7RR349_seed_syn0.c` (2025 lines, attached)\n\n**2. Add printf statements to verify output:**\n\nWe added printf statements to print all target variables and checksum, creating `mutant_full_modified.c` (2037 lines, attached).\n\n**3. Compile and run the original program:**\n\n```bash\ngcc -o mutant_full_program mutant_full_modified.c\ntimeout 5 ./mutant_full_program\n```\n\nOutput: Complete variable values including `checksum = B53C8281` (completes in \u003c 1 millisecond)\n\n**4. Perform slicing on the original program:**\n\n```bash\nframa-c 7RR349_seed_syn0.c \\\n        -slice-value g_101,g_207,g_270,g_275,g_36,g_208,g_255,g_409,g_501,g_854 \\\n        -then-on \u0027Slicing export\u0027 \\\n        -print -ocode mutant_sliced.c\n```\n\n**5. Add printf statements to the sliced program:**\n\nWe added the same printf statements to the sliced program, creating `mutant_modified.c` (300 lines, attached).\n\n**6. Compile and run the sliced program:**\n\n```bash\ngcc -o mutant_sliced_program mutant_modified.c\ntimeout 5 ./mutant_sliced_program\n```\n\nOutput: Timeout after 5 seconds (program hangs in infinite loop)\n\n### Expected behaviour\n\nThe sliced program should complete execution in similar time as the original program (\u003c 1 millisecond).\n\nExpected results:\n- **Original program**: Completes in \u003c 1 millisecond\n- **Sliced program**: Should also complete in \u003c 1 millisecond\n\n### Actual behaviour\n\n**Original program:**\n- Execution time: \u003c 1 millisecond â\n- Output: Complete with `checksum = B53C8281`\n\n**Sliced program:**\n- Execution time: Timeout after 5 seconds (infinite loop) â\n- Output: No output (program hangs)\n\n**Key difference:**\n\nThe slicing tool transforms a loop from:\n```c\nwhile (n-- != 0 \u0026\u0026 *d != \u0027\\0\u0027)  // Original (line 293)\n    d++;\n```\n\nTo:\n```c\nwhile (1) {\n    unsigned long tmp;\n    tmp = n;\n    n--;\n    if (!(tmp != (unsigned long)0)) break;  // Removed *d != \u0027\\0\u0027 check\n    d++;\n}\n```\n\nThe removed `*d != \u0027\\0\u0027` check was the primary exit condition that allowed the loop to exit after â¤11 iterations. Without it, the loop must iterate through n = 2^64-246 (~10^19) times, causing the hang.\n\n**Problematic function:**\n- Original: `realsmith_3L7lB()` in 7RR349_seed_syn0.c (line 287)\n- After slicing: `realsmith_3L7lB_slice_1()` in mutant_sliced.c\n\n### Contextual information\n\n- **Frama-C installation mode**: From source\n- **Frama-C version**: 30.0 (Zinc)\n- **Plug-in used**: Slicing\n- **OS name**: Linux (WSL2)\n- **OS version**: 6.6.87.2-microsoft-standard-WSL2\n- **Compiler**: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0\n\n### Additional information\n\n**Performance impact:**\n\n| Metric | Original | Sliced | Ratio |\n|--------|----------|--------|-------|\n| Loop iterations | â¤11 | ~1.8Ã10^19 | ~10^18Ã |\n| Execution time | \u003c 1ms | ~974 years | ~10^13Ã |\n\n**Test files attached:**\n- `mutant_full_modified.c` - Original program with printf statements (2037 lines)\n\n[mutant_full_modified.c](/uploads/2dab9ff759dd0a6aa6da1e09cd62f4f9/mutant_full_modified.c)",
+        "state":  "opened",
+        "created_at":  "2025-10-24T10:28:06.530Z",
+        "updated_at":  "2025-12-17T15:46:19.293Z",
+        "closed_at":  null,
+        "closed_by":  null,
+        "labels":  [
+                       "enhancement",
+                       "slicing"
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2736",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2736",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2736/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2736/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2736",
+                           "relative":  "#2736",
+                           "full":  "pub/frama-c#2736"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31046,
+        "iid":  2735,
+        "project_id":  780,
+        "title":  "[Slicing] Different sliced g_371 values for semantically equivalent C programs",
+        "description":  "### Steps to reproduce the issue\n\n   ```\n\n### Expected behaviour\n\nSince the original programs are semantically equivalent (the mutant program only adds Tag macros that are identity functions `#define TagN(x) (x)`), we would expect the slicing tool to produce equivalent sliced programs that maintain the same behavior.\n\nExpected results:\n- Original programs: `g_371 = 65527 (0xFFF7)`\n- Sliced programs: `g_371 = 65527 (0xFFF7)` (same value)\n\n### Actual behaviour\n\nThe slicing tool produces different results for the semantically equivalent programs:\n\n**Original programs (both identical):**\n- `50NYE5_seed_syn0`: `g_371 = 65527 (0xFFF7)`\n\n**Sliced programs (different):**\n- `mutant_g371_only`: `g_371 = 50763 (0xC64B)`\n\nThe slicing tool produces different values for `g_371` in the sliced programs, even though the original programs produce identical results.\n\n### Contextual information\n\n- Frama-C installation mode: From source\n- Frama-C version: 30.0 (Zinc)\n- Plug-in used: Slicing\n- OS name: Ubuntu\n- OS version: 24.04.2 LTS\n- Compiler: gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0\n- Kernel: Linux 6.14.0-33-generic\n\n### Additional information\n\n**Analysis of the programs:**\n\n1. **Semantic Equivalence**: The mutant program (`50NYE5_seed_syn0.c`) contains 833 Tag macros defined as `#define TagN(x) (x)`, which are identity functions that should not affect program semantics.\n\n2. **Slicing Differences**: The slicing tool generates different temporary variables and conditional branches:\n   - Source program slice uses: `if (! tmp_59)` with `tmp_31`\n   - Mutant program slice uses: `if (! tmp_89)` with `tmp_52`\n\n3. **Expression Simplification**: The slicing tool appears to simplify complex conditional logic differently for the two programs, resulting in:\n   - Source slice: `g_371` maintains original value (65527)\n   - Mutant slice: `g_371` gets a different value (50763)\n\n4. **Consistency Question**: We are wondering whether this difference in slicing results is expected behavior or if there might be an issue with how the slicing tool handles programs with extensive macro usage.\n\n**Questions:**\n- Is this difference in slicing results expected for semantically equivalent programs?\n- Should the slicing tool produce identical results for programs that differ only in macro definitions?\n- Are there any known limitations or considerations when slicing programs with extensive macro usage?\n\n**Test Files:**[50NYE5_seed.c](/uploads/eb2a551d761745e7feab34f11cffd912/50NYE5_seed_syn0.c)[source_g371_only.c](/uploads/c2d77efe6fab5ba1621d9cbfb78d232e/mutant_g371_only.c)\n- `50NYE5_seed_syn0.c` - Mutant program (7143 lines, includes Tag macros)\n- `mutant_g371_only.c` - Sliced mutant program\n\nWe would appreciate any guidance on whether this behavior is expected or if there might be an issue with the slicing algorithm.",
+        "state":  "closed",
+        "created_at":  "2025-10-19T17:39:52.775Z",
+        "updated_at":  "2025-12-17T15:42:46.107Z",
+        "closed_at":  "2025-12-17T15:42:45.948Z",
+        "closed_by":  {
+                          "id":  26,
+                          "username":  "blanchard",
+                          "public_email":  "",
+                          "name":  "Allan Blanchard",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://git.frama-c.com/uploads/-/system/user/avatar/26/avatar.png",
+                          "web_url":  "https://git.frama-c.com/blanchard"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  8,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2735",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2735",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2735/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2735/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2735",
+                           "relative":  "#2735",
+                           "full":  "pub/frama-c#2735"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    },
+    {
+        "id":  31033,
+        "iid":  2734,
+        "project_id":  780,
+        "title":  "å¯¹å«éå½å½æ°ç¨åºè¿è¡åçæ¥é",
+        "description":  "// éå½å½æ°å¤ç\n#include \u003cstdio.h\u003e\n\nint recursive_factorial(int n) {\n    if (n \u003c= 1) {\n        return 1;\n    }\n    return n * recursive_factorial(n - 1);\n}\n\nint recursive_fibonacci(int n) {\n    if (n \u003c= 1) {\n        return n;\n    }\n    return recursive_fibonacci(n - 1) + recursive_fibonacci(n - 2);\n}\n\nint main() {\n    int x = 5;\n    int result1 = recursive_factorial(x);\n    int result2 = recursive_fibonacci(x);\n    return result1 + result2;\n}\n\nåçæä»¤ï¼\nframa-c bugs/bug1_recursive_function/bug_test_recursive.c -slice-value=\"result1\" -slicing-level 2\n\nåçç»æï¼æ¥éï¼ï¼\n[kernel] Parsing user_scenario_recursive.c (with preprocessing)\n[slicing] slicing requests in progress...\n[eva] Analyzing a complete application starting at main\n[eva:initial-state] Values of globals at initialization\n  \n[eva:recursion] user_scenario_recursive.c:9: \n  detected recursive call of function factorial.\n[eva] user_scenario_recursive.c:9: User Error: \n  Recursive call to factorial without assigns clause.\n  Generating probably incomplete assigns to interpret the call. Try to increase\n  the -eva-unroll-recursive-calls parameter or write a correct specification\n  for function factorial.\n[eva] using specification for function factorial\n[eva:alarm] user_scenario_recursive.c:9: Warning: \n  signed overflow. assert -2147483648 â¤ n * tmp;\n                   (tmp from factorial(n - 1))\n[eva:alarm] user_scenario_recursive.c:9: Warning: \n  signed overflow. assert n * tmp â¤ 2147483647;\n                   (tmp from factorial(n - 1))\n[eva:recursion] user_scenario_recursive.c:17: \n  detected recursive call of function fibonacci.\n[eva] user_scenario_recursive.c:17: User Error: \n  Recursive call to fibonacci without assigns clause.\n  Generating probably incomplete assigns to interpret the call. Try to increase\n  the -eva-unroll-recursive-calls parameter or write a correct specification\n  for function fibonacci.\n[eva] using specification for function fibonacci\n[eva:recursion] user_scenario_recursive.c:17: \n  detected recursive call of function fibonacci.\n[eva] user_scenario_recursive.c:17: Warning: \n  Using specification of function fibonacci for recursive calls.\n  Analysis of function fibonacci is thus incomplete and its soundness\n  relies on the written specification.\n[eva:alarm] user_scenario_recursive.c:17: Warning: \n  signed overflow.\n  assert -2147483648 â¤ tmp + tmp_0;\n  (tmp from fibonacci(n - 1), tmp_0 from fibonacci(n - 2))\n[eva:alarm] user_scenario_recursive.c:17: Warning: \n  signed overflow.\n  assert tmp + tmp_0 â¤ 2147483647;\n  (tmp from fibonacci(n - 1), tmp_0 from fibonacci(n - 2))\n[eva:alarm] user_scenario_recursive.c:27: Warning: \n  signed overflow. assert -2147483648 â¤ fact_result + fib_result;\n[eva:alarm] user_scenario_recursive.c:27: Warning: \n  signed overflow. assert fact_result + fib_result â¤ 2147483647;\n[eva:summary] ====== ANALYSIS SUMMARY ======\n  ----------------------------------------------------------------------------\n  3 functions analyzed (out of 3): 100% coverage.\n  In these functions, 17 statements reached (out of 23): 73% coverage.\n  ----------------------------------------------------------------------------\n  Some errors and warnings have been raised during the analysis:\n    by the Eva analyzer:      2 errors    1 warning\n    by the Frama-C kernel:    0 errors    0 warnings\n  ----------------------------------------------------------------------------\n  6 alarms generated by the analysis:\n       6 integer overflows\n  ----------------------------------------------------------------------------\n  No logical properties have been reached by the analysis.\n  ----------------------------------------------------------------------------\n[slicing] initializing slicing ...\n[slicing] interpreting slicing requests from the command line...\n[pdg] computing for function main\n[from] Computing for function factorial\n[from] Computing for function factorial \u003c-factorial\n[from] Done for function factorial\n[from] Done for function factorial\n[from] Computing for function fibonacci\n[from] Computing for function fibonacci \u003c-fibonacci\n[from] Done for function fibonacci\n[from] Done for function fibonacci\n[pdg] done for function main\n[slicing] applying all slicing requests...\n[slicing] applying 0 actions...\n[slicing] applying all slicing requests...\n[slicing] applying 1 actions...\n[slicing] applying actions: 1/1...\n[pdg] computing for function fibonacci\n[pdg] done for function fibonacci\n[pdg] computing for function factorial\n[pdg] done for function factorial\n[slicing] exporting project to \u0027Slicing export\u0027...\n[slicing] applying all slicing requests...\n[slicing] applying 0 actions...\n[sparecode] remove unused global declarations from project \u0027Slicing export tmp\u0027\n[sparecode] removed unused global declarations in new project \u0027Slicing export\u0027\n[eva] User Error: Deferred error message was emitted during execution. See above messages for more information.\n[kernel] Plug-in eva aborted: invalid user input.",
+        "state":  "closed",
+        "created_at":  "2025-10-14T14:31:09.475Z",
+        "updated_at":  "2025-10-15T06:39:18.834Z",
+        "closed_at":  "2025-10-15T06:39:18.826Z",
+        "closed_by":  {
+                          "id":  23,
+                          "username":  "virgile",
+                          "public_email":  "",
+                          "name":  "Virgile Prevosto",
+                          "state":  "active",
+                          "locked":  false,
+                          "avatar_url":  "https://secure.gravatar.com/avatar/a011a10334ec22fe7e7317c48be6ef8d83cf2ed986b3623586fbc574a3ef4b44?s=80\u0026d=identicon",
+                          "web_url":  "https://git.frama-c.com/virgile"
+                      },
+        "labels":  [
+
+                   ],
+        "milestone":  null,
+        "assignees":  [
+
+                      ],
+        "author":  {
+                       "id":  1298,
+                       "username":  "Pipi9221",
+                       "public_email":  null,
+                       "name":  "Pipi9221",
+                       "state":  "active",
+                       "locked":  false,
+                       "avatar_url":  "https://secure.gravatar.com/avatar/fed62dba70977b92711085af03eb281bc5301f6d8106b62788acaa6443aad047?s=80\u0026d=identicon",
+                       "web_url":  "https://git.frama-c.com/Pipi9221"
+                   },
+        "type":  "ISSUE",
+        "assignee":  null,
+        "user_notes_count":  1,
+        "merge_requests_count":  0,
+        "upvotes":  0,
+        "downvotes":  0,
+        "due_date":  null,
+        "confidential":  false,
+        "discussion_locked":  null,
+        "issue_type":  "issue",
+        "web_url":  "https://git.frama-c.com/pub/frama-c/-/issues/2734",
+        "time_stats":  {
+                           "time_estimate":  0,
+                           "total_time_spent":  0,
+                           "human_time_estimate":  null,
+                           "human_total_time_spent":  null
+                       },
+        "task_completion_status":  {
+                                       "count":  0,
+                                       "completed_count":  0
+                                   },
+        "has_tasks":  true,
+        "task_status":  "0 of 0 checklist items completed",
+        "_links":  {
+                       "self":  "https://git.frama-c.com/api/v4/projects/780/issues/2734",
+                       "notes":  "https://git.frama-c.com/api/v4/projects/780/issues/2734/notes",
+                       "award_emoji":  "https://git.frama-c.com/api/v4/projects/780/issues/2734/award_emoji",
+                       "project":  "https://git.frama-c.com/api/v4/projects/780",
+                       "closed_as_duplicate_of":  null
+                   },
+        "references":  {
+                           "short":  "#2734",
+                           "relative":  "#2734",
+                           "full":  "pub/frama-c#2734"
+                       },
+        "severity":  "UNKNOWN",
+        "moved_to_id":  null,
+        "imported":  false,
+        "imported_from":  "none",
+        "service_desk_reply_to":  null
+    }
+]

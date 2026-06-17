@@ -1,0 +1,1 @@
+../../defects/test1_数组初始化丢失，数值-done/mutant_modified.c

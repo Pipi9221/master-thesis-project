@@ -159,12 +159,19 @@ class LlmOnlineSeedSource(SeedSource):
             case_dir = output_dir / seed_id
             case_dir.mkdir(parents=True, exist_ok=True)
 
-            prompt_text = build_prompt(
-                mr=self._config.mr,
-                feature_focus=self._config.feature_focus,
-                criteria=self._config.criteria,
-                dependency_focus=self._config.dependency_focus,
-            )
+            if self._config.mr == "MR4":
+                from .llm_prompts import build_mr4_prompt
+                prompt_text = build_mr4_prompt(
+                    feature_focus=self._config.feature_focus,
+                    dependency_focus=self._config.dependency_focus,
+                )
+            else:
+                prompt_text = build_prompt(
+                    mr=self._config.mr,
+                    feature_focus=self._config.feature_focus,
+                    criteria=self._config.criteria,
+                    dependency_focus=self._config.dependency_focus,
+                )
             prompt_hash = compute_prompt_hash(prompt_text)
 
             seed_case: SeedCase | None = None
@@ -404,3 +411,219 @@ def _write_failure_meta(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
+
+# ---------------------------------------------------------------------------
+# MR1 dual-output seed source
+# ---------------------------------------------------------------------------
+
+_MR1_VARIANT_DELIMITER = "// ===VARIANT==="
+
+
+class LlmMr1OnlineSeedSource(SeedSource):
+    """LLM seed source for MR1 that generates both seed.c and mutant.c in a
+    single LLM call.
+
+    The LLM is asked to output two semantically-equivalent C programs separated
+    by ``// ===VARIANT===``.  The first becomes ``seed.c``, the second becomes
+    ``mutant.c``.
+    """
+
+    def __init__(
+        self,
+        *,
+        runner: CommandRunner,
+        config: LlmOnlineConfig,
+    ) -> None:
+        self._runner = runner
+        self._config = config
+
+    def materialize_cases(self, output_dir: Path) -> list[SeedCase]:
+        from .llm_prompts import build_mr1_dual_prompt, compute_prompt_hash, render_prompt_file
+
+        cases: list[SeedCase] = []
+
+        for seed_index in range(self._config.count):
+            seed_id = f"llm_online_{seed_index + 1:04d}"
+            case_dir = output_dir / seed_id
+            case_dir.mkdir(parents=True, exist_ok=True)
+
+            prompt_text = build_mr1_dual_prompt(
+                feature_focus=self._config.feature_focus,
+                criteria=self._config.criteria,
+                dependency_focus=self._config.dependency_focus,
+            )
+            prompt_hash = compute_prompt_hash(prompt_text)
+
+            seed_case: SeedCase | None = None
+
+            for retry in range(self._config.max_retries):
+                seed_code, mutant_code = self._call_llm_mr1(
+                    case_dir=case_dir,
+                    prompt_text=prompt_text,
+                    seed_id=seed_id,
+                )
+
+                if seed_code is None or mutant_code is None:
+                    logger.warning(
+                        "[%s] LLM call failed (retry %d/%d)",
+                        seed_id,
+                        retry + 1,
+                        self._config.max_retries,
+                    )
+                    continue
+
+                # --- compile check on both ---
+                seed_ok, _ = self._compile_check(seed_code)
+                if not seed_ok:
+                    logger.warning(
+                        "[%s] Seed compile check failed (retry %d/%d)",
+                        seed_id,
+                        retry + 1,
+                        self._config.max_retries,
+                    )
+                    continue
+                mutant_ok, _ = self._compile_check(mutant_code)
+                if not mutant_ok:
+                    logger.warning(
+                        "[%s] Mutant compile check failed (retry %d/%d)",
+                        seed_id,
+                        retry + 1,
+                        self._config.max_retries,
+                    )
+                    continue
+
+                # --- SUCCESS ---
+                seed_path = case_dir / "seed.c"
+                mutant_path = case_dir / "mutant.c"
+                seed_path.write_text(seed_code, encoding="utf-8")
+                mutant_path.write_text(mutant_code, encoding="utf-8")
+
+                seed_case = SeedCase(
+                    seed_id=seed_id,
+                    generator="llm_online",
+                    case_dir=case_dir,
+                    source_name="generated.c",
+                    source_meta={
+                        "mr": self._config.mr,
+                        "feature_focus": self._config.feature_focus,
+                        "prompt_hash": prompt_hash,
+                        "compile_ok": True,
+                        "run_ok": True,
+                        "exit_code": 0,
+                        "feature_check": None,
+                        "review_status": "pending",
+                        "retry_count": retry + 1,
+                    },
+                )
+                seed_case.write_seed_meta()
+                cases.append(seed_case)
+                break
+
+            if seed_case is None:
+                _write_failure_meta(
+                    case_dir=case_dir,
+                    seed_id=seed_id,
+                    mr=self._config.mr,
+                    prompt_hash=prompt_hash,
+                    max_retries=self._config.max_retries,
+                )
+                logger.error(
+                    "[%s] All %d retries exhausted",
+                    seed_id,
+                    self._config.max_retries,
+                )
+
+        return cases
+
+    def _call_llm_mr1(
+        self,
+        *,
+        case_dir: Path,
+        prompt_text: str,
+        seed_id: str,
+    ) -> tuple[str | None, str | None]:
+        """Call LLM and split output into seed and mutant code."""
+        from .llm_prompts import render_prompt_file
+
+        prompt_file = case_dir / "prompt.txt"
+        output_file = case_dir / "llm_output.c"
+
+        render_prompt_file(prompt_text, prompt_file)
+
+        if not self._config.command_template:
+            logger.error("[%s] No LLM command template configured", seed_id)
+            return None, None
+
+        command = _build_llm_command(
+            self._config.command_template,
+            prompt_file=prompt_file,
+            output_file=output_file,
+        )
+        result = self._runner.run(command)
+
+        if result.exit_code != 0:
+            return None, None
+
+        if not output_file.exists():
+            logger.warning("[%s] LLM output file not created", seed_id)
+            return None, None
+
+        raw_output = output_file.read_text(encoding="utf-8", errors="ignore")
+        if not raw_output.strip():
+            return None, None
+
+        parts = raw_output.split(_MR1_VARIANT_DELIMITER, 1)
+        if len(parts) != 2:
+            logger.warning(
+                "[%s] LLM output missing variant delimiter, got %d parts",
+                seed_id,
+                len(parts),
+            )
+            return None, None
+
+        seed_code = _extract_c_code_block(parts[0])
+        mutant_code = _extract_c_code_block(parts[1])
+
+        if not seed_code or not mutant_code:
+            logger.warning("[%s] Empty seed or mutant after extraction", seed_id)
+            return None, None
+
+        return seed_code, mutant_code
+
+    def _compile_check(
+        self, source_code: str
+    ) -> tuple[bool, CommandResult]:
+        """Run ``clang -fsyntax-only`` on the given source code."""
+        import tempfile
+
+        tmp = tempfile.NamedTemporaryFile(
+            suffix=".c", mode="w", delete=False, encoding="utf-8"
+        )
+        try:
+            tmp.write(source_code)
+            tmp.close()
+            source_path = Path(tmp.name)
+        except Exception:
+            tmp.close()
+            raise
+
+        result = _compile_syntax_check(
+            source_path,
+            runner=self._runner,
+            clang_binary=self._config.clang_binary,
+            include_dir=self._config.compile_include_dir,
+        )
+        return result.exit_code == 0, result
+
+
+def _extract_c_code_block(text: str) -> str:
+    """Extract C code from text, stripping markdown fences and leading/trailing
+    whitespace.  Returns the cleaned code or empty string."""
+    import re
+
+    # Try to extract from markdown code fence
+    code_block = re.search(r"```(?:c|C)?\s*\n?(.*?)```", text, re.DOTALL)
+    if code_block:
+        return code_block.group(1).strip()
+    return text.strip()

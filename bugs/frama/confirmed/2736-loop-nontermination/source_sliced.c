@@ -1,0 +1,1 @@
+../../defects/debug_deadloop_test47/test47_backup/source_sliced.c

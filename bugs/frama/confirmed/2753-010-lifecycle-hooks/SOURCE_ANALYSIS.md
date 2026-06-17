@@ -1,0 +1,1 @@
+../../issues/010-gnu-constructor-dropped/notes/SOURCE_ANALYSIS.md

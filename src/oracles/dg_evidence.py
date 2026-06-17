@@ -60,6 +60,7 @@ def _build_slice_evidence(
     return {
         "slice_ok": slice_outcome.slice_ok,
         "failure_reason": slice_outcome.failure_reason,
+        "output_path": str(slice_outcome.output_path),
         "criterion": _extract_criterion(slice_outcome.command),
         "command": list(slice_outcome.command),
         "auxiliary_commands": slice_outcome.auxiliary_commands,

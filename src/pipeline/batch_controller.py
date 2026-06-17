@@ -503,9 +503,9 @@ def main() -> int:
     parser.add_argument("--csmith-include-dir", default="/usr/include/csmith")
     parser.add_argument("--clang-binary", default="clang")
     parser.add_argument("--frama-binary", default="frama-c")
-    parser.add_argument("--dg-binary", default="llvm-slicer")
-    parser.add_argument("--dg-clang-binary", default="clang-14")
-    parser.add_argument("--dg-llvm-dis-binary", default="llvm-dis-14")
+    parser.add_argument("--dg-binary")
+    parser.add_argument("--dg-clang-binary")
+    parser.add_argument("--dg-llvm-dis-binary")
     parser.add_argument("--creal-python", default="/usr/bin/python3")
     parser.add_argument("--seed-dir", default=None)
 

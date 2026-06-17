@@ -1,0 +1,28 @@
+[
+  {
+    "variables": [
+      "g_29",
+      "g_57",
+      "g_388",
+      "g_391",
+      "g_419",
+      "g_71",
+      "g_238"
+    ],
+    "command": "frama-c batch_experiments/test_20251023_212011/test80/7IA9GI_seed.c -slice-value g_29,g_57,g_388,g_391,g_419,g_71,g_238 -then-on Slicing export -print -ocode batch_experiments/test_20251023_212011/test80/source_sliced.c",
+    "status": "success"
+  },
+  {
+    "variables": [
+      "g_29",
+      "g_57",
+      "g_388",
+      "g_391",
+      "g_419",
+      "g_71",
+      "g_238"
+    ],
+    "command": "frama-c batch_experiments/test_20251023_212011/test80/7IA9GI_seed_syn0.c -slice-value g_29,g_57,g_388,g_391,g_419,g_71,g_238 -then-on Slicing export -print -ocode batch_experiments/test_20251023_212011/test80/mutant_sliced.c",
+    "status": "success"
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "variables": [
+      "g_89",
+      "g_277",
+      "g_76",
+      "g_167",
+      "g_326",
+      "g_329",
+      "g_336",
+      "g_85",
+      "g_333",
+      "g_44",
+      "g_80",
+      "g_128",
+      "g_166",
+      "g_364",
+      "g_450"
+    ],
+    "command": "frama-c batch_experiments/test_20251023_195341/test87/43TJCU_seed.c -slice-value g_89,g_277,g_76,g_167,g_326,g_329,g_336,g_85,g_333,g_44,g_80,g_128,g_166,g_364,g_450 -then-on Slicing export -print -ocode batch_experiments/test_20251023_195341/test87/source_sliced.c",
+    "status": "success"
+  },
+  {
+    "variables": [
+      "g_89",
+      "g_277",
+      "g_76",
+      "g_167",
+      "g_326",
+      "g_329",
+      "g_336",
+      "g_85",
+      "g_333",
+      "g_44",
+      "g_80",
+      "g_128",
+      "g_166",
+      "g_364",
+      "g_450"
+    ],
+    "command": "frama-c batch_experiments/test_20251023_195341/test87/43TJCU_seed_syn0.c -slice-value g_89,g_277,g_76,g_167,g_326,g_329,g_336,g_85,g_333,g_44,g_80,g_128,g_166,g_364,g_450 -then-on Slicing export -print -ocode batch_experiments/test_20251023_195341/test87/mutant_sliced.c",
+    "status": "success"
+  }
+]

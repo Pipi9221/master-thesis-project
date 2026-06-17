@@ -1,0 +1,42 @@
+[
+  {
+    "variables": [
+      "g_106",
+      "g_111",
+      "g_278",
+      "g_89",
+      "g_101",
+      "g_153",
+      "g_154",
+      "g_206",
+      "g_327",
+      "g_388",
+      "g_428",
+      "g_347",
+      "g_378",
+      "g_640"
+    ],
+    "command": "frama-c batch_experiments/test_20251023_193214/test54/PYL7YO_seed.c -slice-value g_106,g_111,g_278,g_89,g_101,g_153,g_154,g_206,g_327,g_388,g_428,g_347,g_378,g_640 -then-on Slicing export -print -ocode batch_experiments/test_20251023_193214/test54/source_sliced.c",
+    "status": "success"
+  },
+  {
+    "variables": [
+      "g_106",
+      "g_111",
+      "g_278",
+      "g_89",
+      "g_101",
+      "g_153",
+      "g_154",
+      "g_206",
+      "g_327",
+      "g_388",
+      "g_428",
+      "g_347",
+      "g_378",
+      "g_640"
+    ],
+    "command": "frama-c batch_experiments/test_20251023_193214/test54/PYL7YO_seed_syn0.c -slice-value g_106,g_111,g_278,g_89,g_101,g_153,g_154,g_206,g_327,g_388,g_428,g_347,g_378,g_640 -then-on Slicing export -print -ocode batch_experiments/test_20251023_193214/test54/mutant_sliced.c",
+    "status": "success"
+  }
+]

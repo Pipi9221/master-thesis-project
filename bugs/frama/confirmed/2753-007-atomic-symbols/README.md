@@ -1,0 +1,1 @@
+../../issues/007-c11-atomics-undefined-symbols/notes/README.md

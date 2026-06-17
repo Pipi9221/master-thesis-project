@@ -36,7 +36,7 @@ class FramaAdapter:
 
     def slice(self, request: SliceRequest) -> SliceOutcome:
         command = self.build_command(request)
-        result = self._runner.run(command)
+        result = self._runner.run(command, timeout=300)
         if result.exit_code != 0:
             return SliceOutcome(
                 tool=request.tool,

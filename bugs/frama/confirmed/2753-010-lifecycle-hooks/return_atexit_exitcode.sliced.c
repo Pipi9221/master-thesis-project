@@ -1,0 +1,1 @@
+../../issues/010-gnu-constructor-dropped/artifacts/return_atexit_exitcode.sliced.c

@@ -1,0 +1,1 @@
+../../defects/test26-未初始化导致除零异常-done/mutant_sliced.c

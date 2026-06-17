@@ -9,6 +9,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from common.runner import SubprocessCommandRunner
+from common.tool_paths import (
+    resolve_dg_clang,
+    resolve_dg_lli,
+    resolve_dg_llvm_dis,
+    resolve_dg_llvm_link,
+    resolve_dg_slicer,
+)
 from oracles.base import OracleRequest, OracleResult, OracleStatus
 from oracles.dg_oracle import DGOracle
 from oracles.frama_oracle import FramaOracle
@@ -32,11 +39,11 @@ class RunOracleConfig:
     compiler_args: str = "-Wall -Wextra"
     link_args: str = "-lm"
     csmith_include_dir: str = "/usr/include/csmith"
-    dg_binary: str = "llvm-slicer"
-    dg_clang_binary: str = "clang-14"
-    dg_llvm_dis_binary: str = "llvm-dis-14"
-    dg_lli_binary: str = "lli-14"
-    dg_llvm_link_binary: str = "llvm-link-14"
+    dg_binary: str | None = None
+    dg_clang_binary: str | None = None
+    dg_llvm_dis_binary: str | None = None
+    dg_lli_binary: str | None = None
+    dg_llvm_link_binary: str | None = None
     dg_native_compile_args: str = "-O0 -Wall -Wextra"
     dg_args: str = "-annotate slice"
     dg_judge_mode: str = "off"
@@ -165,14 +172,14 @@ def _build_oracle(config: RunOracleConfig, runner: SubprocessCommandRunner):
     return DGOracle(
         adapter=adapter,
         runner=runner,
-        compiler_binary=config.dg_clang_binary,
+        compiler_binary=config.dg_clang_binary if config.dg_clang_binary is not None else resolve_dg_clang(),
         compiler_extra_args=tuple(
             shlex.split(config.dg_native_compile_args, posix=os.name != "nt")
         ),
         include_dirs=(config.csmith_include_dir,) if config.csmith_include_dir else (),
         link_args=tuple(shlex.split(config.link_args, posix=os.name != "nt")),
-        lli_binary=config.dg_lli_binary,
-        llvm_link_binary=config.dg_llvm_link_binary,
+        lli_binary=config.dg_lli_binary if config.dg_lli_binary is not None else resolve_dg_lli(),
+        llvm_link_binary=config.dg_llvm_link_binary if config.dg_llvm_link_binary is not None else resolve_dg_llvm_link(),
         llm_judge=llm_judge,
     )
 
@@ -195,11 +202,11 @@ def _parse_args() -> argparse.Namespace:
         "--csmith-include-dir",
         default=os.environ.get("CSMITH_INCLUDE_DIR", "/usr/include/csmith"),
     )
-    parser.add_argument("--dg-binary", default="llvm-slicer")
-    parser.add_argument("--dg-clang-binary", default="clang-14")
-    parser.add_argument("--dg-llvm-dis-binary", default="llvm-dis-14")
-    parser.add_argument("--dg-lli-binary", default="lli-14")
-    parser.add_argument("--dg-llvm-link-binary", default="llvm-link-14")
+    parser.add_argument("--dg-binary")
+    parser.add_argument("--dg-clang-binary")
+    parser.add_argument("--dg-llvm-dis-binary")
+    parser.add_argument("--dg-lli-binary")
+    parser.add_argument("--dg-llvm-link-binary")
     parser.add_argument("--dg-native-compile-args", default="-O0 -Wall -Wextra")
     parser.add_argument("--dg-args", default="-annotate slice")
     parser.add_argument("--dg-judge-mode", choices=("off", "hybrid", "required"), default="off")

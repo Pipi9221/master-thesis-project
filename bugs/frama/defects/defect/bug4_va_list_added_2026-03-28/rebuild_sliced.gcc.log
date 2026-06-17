@@ -1,0 +1,20 @@
+test_sliced.c: In function ‘sum_with_side_effect_slice_1’:
+test_sliced.c:9:8: error: assignment to expression with array type
+    9 |   args = __va_params;
+      |        ^
+test_sliced.c:16:9: error: cannot convert to a pointer type
+   16 |         tmp = *((int *)*args);
+      |         ^~~
+test_sliced.c:17:14: error: lvalue required as increment operand
+   17 |         args ++;
+      |              ^~
+test_sliced.c: In function ‘sum_simple_slice_1’:
+test_sliced.c:31:8: error: assignment to expression with array type
+   31 |   args = __va_params;
+      |        ^
+test_sliced.c:38:9: error: cannot convert to a pointer type
+   38 |         tmp = *((int *)*args);
+      |         ^~~
+test_sliced.c:39:14: error: lvalue required as increment operand
+   39 |         args ++;
+      |              ^~

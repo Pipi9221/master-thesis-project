@@ -1,0 +1,82 @@
+{
+  "experiment_id": 34,
+  "timestamp": "2025-11-02T22:42:59.429460",
+  "source_file": "LJKE95_seed.c",
+  "mutant_file": "LJKE95_seed_syn0.c",
+  "slice_criteria": [
+    "g_172",
+    "g_25",
+    "g_103",
+    "g_229",
+    "g_235"
+  ],
+  "actual_sliced_variable": "g_172",
+  "global_variables": [
+    "g_172",
+    "g_25",
+    "g_103",
+    "g_229",
+    "g_235",
+    "g_45",
+    "g_420",
+    "g_425",
+    "g_755",
+    "g_3",
+    "g_36"
+  ],
+  "variable_comparisons": {
+    "g_172": {
+      "original": "65535",
+      "mutant": "65535",
+      "original_slice": "65535",
+      "mutant_slice": "未找到"
+    },
+    "g_25": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "未找到"
+    },
+    "g_103": {
+      "original": "-1",
+      "mutant": "-1",
+      "original_slice": "-1",
+      "mutant_slice": "未找到"
+    },
+    "g_229": {
+      "original": "15",
+      "mutant": "15",
+      "original_slice": "15",
+      "mutant_slice": "未找到"
+    },
+    "g_235": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "未找到"
+    }
+  },
+  "failure_info": {
+    "source_slicing": {
+      "status": "success"
+    },
+    "mutant_slicing": {
+      "status": "success"
+    },
+    "source_compilation": {
+      "status": "success"
+    },
+    "mutant_compilation": {
+      "status": "success"
+    },
+    "source_runtime": {
+      "status": "success"
+    },
+    "mutant_runtime": {
+      "status": "failed",
+      "exit_code": -11,
+      "signal": null,
+      "error": "Program exited with code -11"
+    }
+  }
+}

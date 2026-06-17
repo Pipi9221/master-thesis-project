@@ -1,0 +1,1 @@
+../../issues/004-vla-support/artifacts/value_vla_ptr_alias.sliced.c

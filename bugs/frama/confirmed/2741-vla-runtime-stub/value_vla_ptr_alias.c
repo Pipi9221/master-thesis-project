@@ -1,0 +1,1 @@
+../../issues/004-vla-support/cases/value_vla_ptr_alias.c

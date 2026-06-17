@@ -1,0 +1,1 @@
+../../defects/test6_指针初始化丢失（三级指针）/5J7MYV_seed.c

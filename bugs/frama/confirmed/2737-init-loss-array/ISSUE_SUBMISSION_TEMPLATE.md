@@ -1,0 +1,1 @@
+../../defects/test1_数组初始化丢失，数值-done/ISSUE_SUBMISSION_TEMPLATE.md

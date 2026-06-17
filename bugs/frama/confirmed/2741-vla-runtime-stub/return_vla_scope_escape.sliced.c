@@ -1,0 +1,1 @@
+../../issues/004-vla-support/artifacts/return_vla_scope_escape.sliced.c

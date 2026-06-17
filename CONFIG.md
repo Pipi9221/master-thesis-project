@@ -141,6 +141,16 @@ PYTHONPATH=src pytest tests/ -q
 
 ## Bug documentation
 
-The `bugs/` directory contains reference materials for 43 confirmed bugs (17 Frama-C + 26 DG).
+The `bugs/` directory contains reference materials for 43 confirmed slicing bugs:
+- **17 Frama-C bugs** in `bugs/frama/` — organized under `confirmed/` (unified bug directories with symlinks), with supporting materials in `issues/` (C-language feature classification), `defects/` (batch experiment raw data), `test/` (70+ standalone C test cases), and `paper-verification/` (root cause analyses and submission materials)
+- **26 DG bugs** in `bugs/dg/`
+
+Start with `bugs/frama/README.md` for the full index, directory relationship diagram, and usage guide by scenario.
+
+**Test harnesses**:
+- `tooling/test_frama_bugs.py` — reproduces all 17 Frama-C bugs, scans issues/, and maps root cause families
+- `tooling/test_mr1_bug_detection.py` — demonstrates MR1 detection with structurally-diverse semantic variants
+- `tooling/test_dg_bugs.py` — DG bug reproduction harness
+
 Shell scripts and reproduction notes use placeholder variables (`$DG_REPO`, `$SLICING_REPO`, etc.) —
 adapt these to your local paths before running reproductions.

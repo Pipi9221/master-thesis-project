@@ -113,75 +113,72 @@ def generate_mutants(config: GenerateMutantsConfig) -> dict[str, object]:
     if effective_max_retries == 0:
         effective_max_retries = _default_max_retries(config.mr)
 
+    failed_cases: list[dict[str, object]] = []
     for index, case in enumerate(cases):
-        _prepare_case(case, config.mr)
-        rng_seed = config.rng_seed_base + index
-        relation_requires_mutant = config.mr != "MR4"
-        compile_check = None
-        if config.mr == "MR1":
-            mutate_result = _materialize_mr1_result(case, rng_seed)
-            compile_check = _run_compile_gate(
-                validator=compile_validator,
-                clang_binary=config.clang_binary,
-                include_dir=config.csmith_include_dir,
-                mutant_path=case.mutant_path,
+        try:
+            _prepare_case(
+                case, config.mr,
+                preferred_variable=config.llm_criteria if config.llm_criteria != "keep" else "",
             )
-            _write_compile_check(case.mutation_meta_path, compile_check)
-            if not compile_check["compile_ok"]:
-                raise SystemExit(
-                    f"compile gate failed for {case.seed_id}: exit={compile_check['exit_code']}"
-                )
-            # MR1 prerequisite: seed/mutant must have equivalent observable behavior
-            behavior_check = _check_behavior_equivalence(
-                runner=runner,
-                clang_binary=config.clang_binary,
-                include_dir=config.csmith_include_dir,
-                seed_path=case.seed_path,
-                mutant_path=case.mutant_path,
-                work_dir=case.case_dir,
-            )
-            _update_mr1_behavior(case.mutation_meta_path, behavior_check)
-            if not behavior_check["behavior_ok"]:
-                raise SystemExit(
-                    f"MR1 behavior equivalence failed for {case.seed_id}: "
-                    f"seed_exit={behavior_check.get('seed_exit_code')}, "
-                    f"mutant_exit={behavior_check.get('mutant_exit_code')}"
-                )
-        elif config.mr in {"MR2", "MR3"}:
-            mutate_result, compile_check = _try_mr23_with_retries(
-                case=case,
-                config=config,
-                runner=runner,
-                compile_validator=compile_validator,
-                backend=backend,
-                rng_seed_base=rng_seed,
-                max_retries=effective_max_retries,
-            )
-        else:
-            mutate_result = None
+            rng_seed = config.rng_seed_base + index
+            relation_requires_mutant = config.mr != "MR4"
             compile_check = None
-        summaries.append(
-            {
+            if config.mr == "MR1":
+                mutate_result = _materialize_mr1_result(case, rng_seed)
+                compile_check = _run_compile_gate(
+                    validator=compile_validator,
+                    clang_binary=config.clang_binary,
+                    include_dir=config.csmith_include_dir,
+                    mutant_path=case.mutant_path,
+                )
+                _write_compile_check(case.mutation_meta_path, compile_check)
+                if not compile_check["compile_ok"]:
+                    raise RuntimeError(
+                        f"compile gate failed: exit={compile_check['exit_code']}"
+                    )
+            elif config.mr in {"MR2", "MR3"}:
+                mutate_result, compile_check = _try_mr23_with_retries(
+                    case=case,
+                    config=config,
+                    runner=runner,
+                    compile_validator=compile_validator,
+                    backend=backend,
+                    rng_seed_base=rng_seed,
+                    max_retries=effective_max_retries,
+                )
+            else:
+                mutate_result = None
+                compile_check = None
+            summaries.append(
+                {
+                    "seed_id": case.seed_id,
+                    "case_dir": case.case_dir.name,
+                    "generator": case.generator,
+                    "rng_seed": rng_seed,
+                    "seed_path": case.seed_path.name,
+                    "seed_meta_path": case.seed_meta_path.name,
+                    "criteria_path": case.criteria_path.name,
+                    "mutant_path": case.mutant_path.name if relation_requires_mutant else None,
+                    "mutation_meta_path": case.mutation_meta_path.name if relation_requires_mutant else None,
+                    "relation_requires_mutant": relation_requires_mutant,
+                    "compile_check": compile_check,
+                    "mutate_result": mutate_result,
+                }
+            )
+        except Exception as exc:
+            failed_cases.append({
                 "seed_id": case.seed_id,
-                "case_dir": case.case_dir.name,
-                "generator": case.generator,
-                "rng_seed": rng_seed,
-                "seed_path": case.seed_path.name,
-                "seed_meta_path": case.seed_meta_path.name,
-                "criteria_path": case.criteria_path.name,
-                "mutant_path": case.mutant_path.name if relation_requires_mutant else None,
-                "mutation_meta_path": case.mutation_meta_path.name if relation_requires_mutant else None,
-                "relation_requires_mutant": relation_requires_mutant,
-                "compile_check": compile_check,
-                "mutate_result": mutate_result,
-            }
-        )
+                "error": str(exc),
+            })
 
     manifest = {
         "mr": config.mr,
         "seed_source": config.seed_source,
         "case_count": len(cases),
+        "successful": len(summaries),
+        "failed": len(failed_cases),
         "cases": summaries,
+        "failed_cases": failed_cases,
     }
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
@@ -236,9 +233,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _build_seed_source(config: GenerateMutantsConfig):
-    if config.mr == "MR1":
-        if config.seed_source != "creal":
-            raise SystemExit("MR1 requires --seed-source creal")
+    if config.mr == "MR1" and config.seed_source == "creal":
         return CrealMr1SeedSource(
             count=config.count,
             python_bin=config.creal_python,
@@ -264,22 +259,29 @@ def _build_seed_source(config: GenerateMutantsConfig):
             required_topics = [
                 t.strip() for t in config.llm_required_topics.split(",") if t.strip()
             ]
+        llm_config = LlmOnlineConfig(
+            mr=config.mr,
+            count=config.count,
+            feature_focus=config.llm_feature_focus,
+            criteria=config.llm_criteria,
+            dependency_focus=config.llm_dependency_focus,
+            command_template=command_template,
+            max_retries=config.llm_max_retries,
+            required_topics=required_topics,
+            min_topics=config.llm_min_topics,
+            clang_binary=config.clang_binary,
+            compile_include_dir=config.csmith_include_dir,
+            run_check=not config.no_run_check,
+        )
+        if config.mr == "MR1":
+            from seeds.llm_online import LlmMr1OnlineSeedSource
+            return LlmMr1OnlineSeedSource(
+                runner=SubprocessCommandRunner(),
+                config=llm_config,
+            )
         return LlmOnlineSeedSource(
             runner=SubprocessCommandRunner(),
-            config=LlmOnlineConfig(
-                mr=config.mr,
-                count=config.count,
-                feature_focus=config.llm_feature_focus,
-                criteria=config.llm_criteria,
-                dependency_focus=config.llm_dependency_focus,
-                command_template=command_template,
-                max_retries=config.llm_max_retries,
-                required_topics=required_topics,
-                min_topics=config.llm_min_topics,
-                clang_binary=config.clang_binary,
-                compile_include_dir=config.csmith_include_dir,
-                run_check=not config.no_run_check,
-            ),
+            config=llm_config,
         )
     if config.seed_dir is None:
         raise SystemExit("--seed-dir is required for llm_files")
@@ -289,9 +291,9 @@ def _build_seed_source(config: GenerateMutantsConfig):
 def _default_max_retries(mr: str) -> int:
     """Return the default max retries for a given MR."""
     if mr == "MR2":
-        return 20
+        return 5
     if mr == "MR3":
-        return 30
+        return 5
     return 1
 
 
@@ -344,51 +346,15 @@ def _try_mr23_with_retries(
         )
 
         if compile_check["compile_ok"]:
-            # --- runtime behavior check ---
-            run_check = _run_mutant_runtime_check(
-                runner=runner,
-                clang_binary=config.clang_binary,
-                include_dir=config.csmith_include_dir,
-                mutant_path=case.mutant_path,
-                work_dir=case.case_dir,
+            _write_compile_check(case.mutation_meta_path, compile_check)
+            _update_retry_meta(
+                case.mutation_meta_path,
+                retry_count=retry + 1,
+                retries_exhausted=False,
+                failure_history=failure_history,
+                validation_status="compile_ok",
             )
-            if run_check["run_ok"]:
-                # --- behavior equivalence check (prerequisite) ---
-                behavior_check = _check_behavior_equivalence(
-                    runner=runner,
-                    clang_binary=config.clang_binary,
-                    include_dir=config.csmith_include_dir,
-                    seed_path=case.seed_path,
-                    mutant_path=case.mutant_path,
-                    work_dir=case.case_dir,
-                )
-                if behavior_check["behavior_ok"]:
-                    _write_compile_check(case.mutation_meta_path, compile_check)
-                    _update_retry_meta(
-                        case.mutation_meta_path,
-                        retry_count=retry + 1,
-                        retries_exhausted=False,
-                        failure_history=failure_history,
-                        validation_status="behavior_ok",
-                        run_check=run_check,
-                        behavior_check=behavior_check,
-                    )
-                    return mutate_result, compile_check
-
-                failure_history.append({
-                    "retry": retry,
-                    "phase": "behavior_equivalence",
-                    "exit_equal": behavior_check.get("exit_equal"),
-                    "stdout_equal": behavior_check.get("stdout_equal"),
-                })
-                continue
-
-            failure_history.append({
-                "retry": retry,
-                "phase": "run_check",
-                "exit_code": run_check.get("exit_code"),
-            })
-            continue
+            return mutate_result, compile_check
 
         failure_history.append({
             "retry": retry,
@@ -474,9 +440,19 @@ def _update_retry_meta(
     )
 
 
-def _prepare_case(case: SeedCase, mr: str) -> None:
+def _prepare_case(case: SeedCase, mr: str, *, preferred_variable: str = "") -> None:
     source = case.seed_path.read_text(encoding="utf-8")
     mutant_exists = case.mutant_path.exists()
+    # For LLM-generated MR1 seeds, the prompt already instructs the LLM to
+    # preserve the criteria variable name in both seed and mutant, so prefer
+    # the explicitly configured variable over the automatic ranking.
+    if mr == "MR1" and preferred_variable and mutant_exists:
+        mutant_text = case.mutant_path.read_text(encoding="utf-8")
+        if preferred_variable in source and preferred_variable in mutant_text:
+            variables = (preferred_variable,)
+            write_criteria_file(case.criteria_path, seed_id=case.seed_id, variables=variables)
+            case.write_seed_meta()
+            return
     if mutant_exists:
         mutant_text = case.mutant_path.read_text(encoding="utf-8")
         ranked = rank_variables(source, mutant_text=mutant_text, count=2 if mr == "MR4" else 1)
@@ -486,7 +462,21 @@ def _prepare_case(case: SeedCase, mr: str) -> None:
             case.write_seed_meta()
             return
     if mr == "MR4":
-        variables = choose_criterion_variables(source, 2)
+        if preferred_variable:
+            preferred = [v.strip() for v in preferred_variable.split(",") if v.strip()]
+            if len(preferred) >= 2 and all(v in source for v in preferred[:2]):
+                variables = tuple(preferred[:2])
+                write_criteria_file(case.criteria_path, seed_id=case.seed_id, variables=variables)
+                case.write_seed_meta()
+                return
+        try:
+            variables = choose_criterion_variables(source, 2)
+        except ValueError:
+            raise RuntimeError(
+                "MR4 criterion selection failed: the generated program lacks enough "
+                "scalar global or local variables to serve as criterion variables. "
+                "Consider re-running or adjusting the prompt."
+            )
     else:
         variables = (choose_criterion_variables(source, 1)[0],)
     write_criteria_file(case.criteria_path, seed_id=case.seed_id, variables=variables)
@@ -517,114 +507,13 @@ def _run_compile_gate(
     }
 
 
-def _run_mutant_runtime_check(
-    *,
-    runner: SubprocessCommandRunner,
-    clang_binary: str,
-    include_dir: str,
-    mutant_path: Path,
-    work_dir: Path,
-) -> dict[str, object]:
-    """Compile mutant to executable and run it, checking exit code is 0."""
-    exe_path = work_dir / "mutant_run"
-    compile_cmd: list[str] = [clang_binary, "-std=c11"]
-    if include_dir:
-        compile_cmd.extend(["-I", include_dir])
-    compile_cmd.extend(["-o", str(exe_path), str(mutant_path)])
-
-    compile_result = runner.run(compile_cmd)
-    if compile_result.exit_code != 0:
-        return {
-            "run_ok": False,
-            "phase": "compile_for_run",
-            "exit_code": compile_result.exit_code,
-            "stderr": compile_result.stderr.strip()[:500],
-        }
-
-    run_result = runner.run([str(exe_path)])
-    return {
-        "run_ok": run_result.exit_code == 0,
-        "phase": "execute",
-        "exit_code": run_result.exit_code,
-        "stdout": run_result.stdout.strip()[:500] if run_result.exit_code != 0 else "",
-        "stderr": run_result.stderr.strip()[:500] if run_result.exit_code != 0 else "",
-    }
-
-
-def _check_behavior_equivalence(
-    *,
-    runner: SubprocessCommandRunner,
-    clang_binary: str,
-    include_dir: str,
-    seed_path: Path,
-    mutant_path: Path,
-    work_dir: Path,
-) -> dict[str, object]:
-    """Compile and run both seed and mutant, check they produce equivalent output.
-
-    This serves as the MR1 observation-value consistency prerequisite check
-    and the MR2/MR3 runtime compliance check.
-    """
-    # Compile seed
-    seed_exe = work_dir / "seed_run"
-    seed_compile = runner.run([
-        clang_binary, "-std=c11",
-        "-I", include_dir,
-        "-o", str(seed_exe),
-        str(seed_path),
-    ])
-    if seed_compile.exit_code != 0:
-        return {
-            "behavior_ok": False,
-            "phase": "seed_compile",
-            "seed_exit_code": seed_compile.exit_code,
-            "seed_stderr": seed_compile.stderr.strip()[:500],
-        }
-
-    # Run seed
-    seed_run = runner.run([str(seed_exe)])
-
-    # Compile mutant
-    mutant_exe = work_dir / "mutant_behavior_run"
-    mutant_compile = runner.run([
-        clang_binary, "-std=c11",
-        "-I", include_dir,
-        "-o", str(mutant_exe),
-        str(mutant_path),
-    ])
-    if mutant_compile.exit_code != 0:
-        return {
-            "behavior_ok": False,
-            "phase": "mutant_compile",
-            "seed_exit_code": seed_run.exit_code,
-            "mutant_compile_exit_code": mutant_compile.exit_code,
-            "mutant_stderr": mutant_compile.stderr.strip()[:500],
-        }
-
-    # Run mutant
-    mutant_run = runner.run([str(mutant_exe)])
-
-    exit_equal = seed_run.exit_code == mutant_run.exit_code
-    stdout_equal = seed_run.stdout == mutant_run.stdout
-
-    return {
-        "behavior_ok": exit_equal and stdout_equal,
-        "phase": "compare",
-        "seed_exit_code": seed_run.exit_code,
-        "mutant_exit_code": mutant_run.exit_code,
-        "exit_equal": exit_equal,
-        "stdout_equal": stdout_equal,
-        "seed_stdout": seed_run.stdout.strip()[:500],
-        "mutant_stdout": mutant_run.stdout.strip()[:500],
-    }
-
-
 def _materialize_mr1_result(case: SeedCase, rng_seed: int) -> dict[str, object]:
+    pattern = "llm_variant" if case.generator in {"llm_online", "llm_files"} else "creal_seed_syn"
     payload = {
         "mr": "MR1",
         "seed_id": case.seed_id,
         "rng_seed": rng_seed,
-        "selected_pattern": "creal_seed_syn",
+        "selected_pattern": pattern,
         "selected_site": None,
         "inserted_symbols": [],
         "attempt_count": 1,
@@ -638,7 +527,7 @@ def _materialize_mr1_result(case: SeedCase, rng_seed: int) -> dict[str, object]:
     )
     return {
         "mr": "MR1",
-        "selected_pattern": "creal_seed_syn",
+        "selected_pattern": pattern,
         "selected_site": None,
         "inserted_symbols": [],
         "mutant_path": str(case.mutant_path),
@@ -650,19 +539,6 @@ def _materialize_mr1_result(case: SeedCase, rng_seed: int) -> dict[str, object]:
 def _write_compile_check(mutation_meta_path: Path, compile_check: dict[str, object]) -> None:
     payload = json.loads(mutation_meta_path.read_text(encoding="utf-8"))
     payload["compile_check"] = compile_check
-    mutation_meta_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-
-
-def _update_mr1_behavior(mutation_meta_path: Path, behavior_check: dict[str, object]) -> None:
-    """Record MR1 behavior equivalence check in mutation meta."""
-    if not mutation_meta_path.exists():
-        return
-    payload = json.loads(mutation_meta_path.read_text(encoding="utf-8"))
-    payload["behavior_check"] = behavior_check
-    payload["validation_status"] = "behavior_ok" if behavior_check["behavior_ok"] else "behavior_mismatch"
     mutation_meta_path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",

@@ -1,0 +1,121 @@
+{
+  "experiment_id": 87,
+  "timestamp": "2025-11-12T22:38:36.730017",
+  "source_file": "7EKEYX_seed.c",
+  "mutant_file": "7EKEYX_seed_syn0.c",
+  "slice_criteria": [
+    "g_163",
+    "g_73",
+    "g_115",
+    "g_183",
+    "g_153",
+    "g_283",
+    "g_7",
+    "g_258",
+    "g_1019",
+    "g_1141"
+  ],
+  "actual_sliced_variable": "g_163",
+  "global_variables": [
+    "g_163",
+    "g_73",
+    "g_115",
+    "g_183",
+    "g_153",
+    "g_283",
+    "g_299",
+    "g_7",
+    "g_258",
+    "g_933",
+    "g_1019",
+    "g_1141",
+    "g_583",
+    "g_804",
+    "g_899",
+    "g_1064",
+    "g_1680",
+    "g_1708"
+  ],
+  "variable_comparisons": {
+    "g_163": {
+      "original": "-3",
+      "mutant": "-3",
+      "original_slice": "-3",
+      "mutant_slice": "-3"
+    },
+    "g_73": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_115": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_183": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_153": {
+      "original": "9",
+      "mutant": "9",
+      "original_slice": "9",
+      "mutant_slice": "9"
+    },
+    "g_283": {
+      "original": "-25",
+      "mutant": "-25",
+      "original_slice": "-25",
+      "mutant_slice": "-25"
+    },
+    "g_7": {
+      "original": "17941",
+      "mutant": "17941",
+      "original_slice": "17941",
+      "mutant_slice": "17927"
+    },
+    "g_258": {
+      "original": "-18",
+      "mutant": "-18",
+      "original_slice": "-18",
+      "mutant_slice": "-18"
+    },
+    "g_1019": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_1141": {
+      "original": "2",
+      "mutant": "2",
+      "original_slice": "2",
+      "mutant_slice": "未在切片中定义"
+    }
+  },
+  "failure_info": {
+    "source_slicing": {
+      "status": "success"
+    },
+    "mutant_slicing": {
+      "status": "success"
+    },
+    "source_compilation": {
+      "status": "success"
+    },
+    "mutant_compilation": {
+      "status": "success"
+    },
+    "source_runtime": {
+      "status": "success"
+    },
+    "mutant_runtime": {
+      "status": "success"
+    }
+  }
+}

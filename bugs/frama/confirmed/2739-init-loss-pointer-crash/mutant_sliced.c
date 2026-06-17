@@ -1,0 +1,1 @@
+../../defects/test34_切片后运行退出（指针未初始化）/mutant_sliced.c

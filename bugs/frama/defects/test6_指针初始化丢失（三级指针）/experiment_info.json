@@ -1,0 +1,139 @@
+{
+  "experiment_id": 6,
+  "timestamp": "2025-10-23T18:53:50.615696",
+  "source_file": "5J7MYV_seed.c",
+  "mutant_file": "5J7MYV_seed_syn0.c",
+  "slice_criteria": [
+    "g_2",
+    "g_131",
+    "g_150",
+    "g_168",
+    "g_26",
+    "g_298",
+    "g_347",
+    "g_372",
+    "g_655",
+    "g_68",
+    "g_88",
+    "g_222",
+    "g_224",
+    "g_260"
+  ],
+  "actual_sliced_variable": "g_2",
+  "global_variables": [
+    "g_2",
+    "g_131",
+    "g_150",
+    "g_168",
+    "g_26",
+    "g_298",
+    "g_347",
+    "g_372",
+    "g_655",
+    "g_68",
+    "g_88",
+    "g_222",
+    "g_224",
+    "g_260",
+    "g_404",
+    "g_449",
+    "g_965",
+    "g_1136",
+    "g_1851",
+    "g_180",
+    "g_1542",
+    "g_1873",
+    "g_90",
+    "g_2131",
+    "g_2352",
+    "g_6",
+    "g_20",
+    "g_256"
+  ],
+  "variable_comparisons": {
+    "g_2": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_131": {
+      "original": "65535",
+      "mutant": "65535",
+      "original_slice": "65535",
+      "mutant_slice": "65535"
+    },
+    "g_150": {
+      "original": "17",
+      "mutant": "17",
+      "original_slice": "17",
+      "mutant_slice": "17"
+    },
+    "g_168": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_26": {
+      "original": "0",
+      "mutant": "0",
+      "original_slice": "0",
+      "mutant_slice": "0"
+    },
+    "g_298": {
+      "original": "-4727",
+      "mutant": "-4727",
+      "original_slice": "-4727",
+      "mutant_slice": "-4727"
+    },
+    "g_347": {
+      "original": "-2",
+      "mutant": "-2",
+      "original_slice": "-2",
+      "mutant_slice": "-2"
+    },
+    "g_372": {
+      "original": "155",
+      "mutant": "155",
+      "original_slice": "155",
+      "mutant_slice": "155"
+    },
+    "g_655": {
+      "original": "5362",
+      "mutant": "5362",
+      "original_slice": "5362",
+      "mutant_slice": "5362"
+    },
+    "g_68": {
+      "original": "-1",
+      "mutant": "-1",
+      "original_slice": "-1",
+      "mutant_slice": "-1"
+    },
+    "g_88": {
+      "original": "4",
+      "mutant": "4",
+      "original_slice": "4",
+      "mutant_slice": "4"
+    },
+    "g_222": {
+      "original": "1900855428",
+      "mutant": "1900855428",
+      "original_slice": "1900855428",
+      "mutant_slice": "1900855429"
+    },
+    "g_224": {
+      "original": "4294967275",
+      "mutant": "4294967275",
+      "original_slice": "4294967275",
+      "mutant_slice": "4294967275"
+    },
+    "g_260": {
+      "original": "45",
+      "mutant": "45",
+      "original_slice": "45",
+      "mutant_slice": "45"
+    }
+  }
+}

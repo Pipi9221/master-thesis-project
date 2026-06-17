@@ -1,0 +1,1 @@
+../../defects/test87_无关代码未移除，体现是源程序和突变体对同一切片标准保留不一样/demo_mutant_sliced.c

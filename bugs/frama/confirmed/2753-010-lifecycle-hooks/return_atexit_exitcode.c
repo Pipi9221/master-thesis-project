@@ -1,0 +1,1 @@
+../../issues/010-gnu-constructor-dropped/cases/return_atexit_exitcode.c

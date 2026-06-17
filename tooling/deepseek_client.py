@@ -19,6 +19,11 @@ import sys
 from pathlib import Path
 from urllib import request, error
 
+# Ensure src/ is on the path so we can import prompt definitions.
+_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
 
 DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
 DEFAULT_MODEL = "deepseek-v4-pro"
@@ -33,15 +38,14 @@ def _extract_c_code(text: str) -> str:
 
 
 def _call_deepseek(prompt: str, *, api_key: str, base_url: str, model: str) -> str:
+    from seeds.llm_prompts import SEED_GENERATION_SYSTEM_PROMPT
+
     url = f"{base_url}/chat/completions"
     body = json.dumps(
         {
             "model": model,
             "messages": [
-                {
-                    "role": "system",
-                    "content": "You are an expert C11 programmer. Generate complete, compilable C source code. Output ONLY the C code, no explanations, no markdown fences.",
-                },
+                {"role": "system", "content": SEED_GENERATION_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.8,
