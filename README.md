@@ -154,17 +154,44 @@ Creal wraps CSmith and Synthesizer to emit semantic-preserving seed/mutant pairs
 
 #### mr_ast_tool (MR2/MR3 AST mutator)
 
-- **Source**: `tooling/` directory in this repository
-- **Build**:
-  ```bash
-  cd $PROJECT
-  cmake -S tooling -B tooling/build -DCMAKE_BUILD_TYPE=Release
-  cmake --build tooling/build
-  ```
-- **Requires**: LLVM/Clang 14 development headers
-  - Ubuntu/Debian: `apt install libclang-14-dev llvm-14-dev`
-- **Binary**: `tooling/build/mr_ast_tool`
-- **Configure**: `export MR_AST_TOOL_BIN=$PROJECT/tooling/build/mr_ast_tool` or `--mr-ast-tool` flag
+基于 Clang LibTooling 的 C 代码 AST 突变器，是项目自带组件（源码在 `tooling/`），**仅 MR2 和 MR3 需要**。
+
+**功能**：
+- **MR2**：在源码中插入与切片准则无关的数据流噪声（额外变量、赋值链、辅助函数调用），用于检验切片器是否正确移除无关代码
+- **MR3**：在 `if (0) { ... }` 等恒不执行分支中插入与准则"看起来相关"的代码，用于检验切片器是否误保留死路径语句
+
+**哪些 MR 需要它**：
+
+| MR | 是否需要 mr_ast_tool |
+|----|---------------------|
+| MR1 | 不需要（走 Creal 或 LLM 双输出） |
+| MR2 | **需要** |
+| MR3 | **需要** |
+| MR4 | 不需要（不产生 mutant） |
+
+**编译**：
+
+依赖 LLVM/Clang 14 开发库：
+```bash
+# Ubuntu/Debian
+apt install libclang-14-dev llvm-14-dev
+```
+
+```bash
+cd $PROJECT
+cmake -S tooling -B tooling/build -DCMAKE_BUILD_TYPE=Release
+cmake --build tooling/build
+# 产物：tooling/build/mr_ast_tool
+```
+
+**配置**（二选一）：
+```bash
+# 方式一：写入 .env（推荐，source .env 后自动生效）
+MR_AST_TOOL_BIN=$PROJECT/tooling/build/mr_ast_tool
+
+# 方式二：每次命令行传入
+--mr-ast-tool $PROJECT/tooling/build/mr_ast_tool
+```
 
 #### Synthesizer (Creal dependency)
 
