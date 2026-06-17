@@ -20,3 +20,6 @@ experiment/batch-run/
 bugs/frama/defects/**/*.o
 bugs/frama/defects/**/test_original
 bugs/frama/defects/**/test_sliced
+
+# Thesis (do not upload)
+docs/thesis/
