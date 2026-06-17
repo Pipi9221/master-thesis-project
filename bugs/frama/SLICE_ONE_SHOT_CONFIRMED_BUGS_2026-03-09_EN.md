@@ -20,7 +20,7 @@ Directory: `issues/007-c11-atomics-undefined-symbols`
 Reproduction:
 
 ```bash
-cd /home/cyuan/projects/Slicing/issues/007-c11-atomics-undefined-symbols
+cd Slicing/issues/007-c11-atomics-undefined-symbols
 opam exec --switch=4.14.2 -- frama-c cases/return_c11_atomic.c \
   -slice-return main,inc \
   -then-on "Slicing export" -print -ocode artifacts/return_c11_atomic.sliced.c
@@ -69,7 +69,7 @@ Directory: `issues/015-posix-pid_t-missing`
 Reproduction:
 
 ```bash
-cd /home/cyuan/projects/Slicing/issues/015-posix-pid_t-missing
+cd Slicing/issues/015-posix-pid_t-missing
 opam exec --switch=4.14.2 -- frama-c cases/return_unistd_posix.c \
   -slice-return main \
   -then-on "Slicing export" -print -ocode artifacts/return_unistd_posix.sliced.c
@@ -92,7 +92,7 @@ Directory: `issues/016-slicing-term-lval-deps`
 Reproduction:
 
 ```bash
-cd /home/cyuan/projects/Slicing/issues/016-slicing-term-lval-deps
+cd Slicing/issues/016-slicing-term-lval-deps
 opam exec --switch=4.14.2 -- frama-c cases/loopinv_acsl_forall_zone.c \
   -slice-loop-inv main \
   -then-on "Slicing export" -print -ocode /tmp/issue016.out.c

@@ -7,7 +7,7 @@ echo "========================================"
 echo ""
 
 # 进入目录
-cd /home/chuang/FramaCsliceNew/creal/batch_experiments_test_failures_v2/test34
+cd "$(dirname "$0")"
 
 echo "1. 编译 mutant_modified.c (有bug的版本)"
 echo "   命令: gcc -o mutant_modified_program mutant_modified.c"

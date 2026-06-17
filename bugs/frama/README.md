@@ -1,6 +1,6 @@
 # bugs/frama/ 目录说明
 
-Frama-C 30.0 (Zinc) 切片工具的 bug 数据库，数据来源 `/home/cyuan/projects/Slicing/`。
+Frama-C 30.0 (Zinc) 切片工具的 bug 数据库，数据来源 `Slicing/`。
 
 ---
 

@@ -12,10 +12,10 @@ error: unknown type name ‘pid_t’
 - 说明：该现象与编译模式/特性宏相关，在 `-std=gnu11` 或定义合适的 POSIX 宏时可能不会触发。
 
 ## 最小复现用例
-- [return_unistd_posix.c](file:///home/cyuan/projects/Slicing/issues/015-posix-pid_t-missing/cases/return_unistd_posix.c)
+- [return_unistd_posix.c](issues/015-posix-pid_t-missing/cases/return_unistd_posix.c)
 
 对应切片导出产物：
-- [return_unistd_posix.sliced.c](file:///home/cyuan/projects/Slicing/issues/015-posix-pid_t-missing/artifacts/return_unistd_posix.sliced.c)
+- [return_unistd_posix.sliced.c](issues/015-posix-pid_t-missing/artifacts/return_unistd_posix.sliced.c)
 
 ## 复现命令
 ```bash

@@ -83,7 +83,7 @@ func_9_slice_1(p_11)
 kill -9 1472888
 
 # 2. 检查主进程是否恢复
-tail -f /home/chuang/FramaCsliceNew/continuous_exp_5000.log
+tail -f FramaCsliceNew/continuous_exp_5000.log
 
 # 3. 如需重启，跳过test47
 ```
@@ -123,6 +123,6 @@ subprocess.run(
 ## ✅ 现场已完整保存
 
 所有相关文件已保存在：
-`/home/chuang/FramaCsliceNew/debug_deadloop_test47/`
+`FramaCsliceNew/debug_deadloop_test47/`
 
 可安全终止卡住的进程，继续后续实验。

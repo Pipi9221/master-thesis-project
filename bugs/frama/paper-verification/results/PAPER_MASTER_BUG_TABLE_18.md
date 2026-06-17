@@ -25,10 +25,10 @@ Date: 2026-03-28
 
 | ID | Status | Category | Cause (short) | Local evidence path |
 |---|---|---|---|---|
-| 2753-007 | reproduced | atomic_runtime_symbol_missing | Exported slice keeps `__fc_atomic_*` calls but lacks linkable implementations. | `/home/cyuan/projects/Slicing/issues/007-c11-atomics-undefined-symbols` |
-| 2753-010 | reproduced | lifecycle_hook_semantic_drop | `constructor/destructor/atexit/cleanup` effects dropped, semantics diverge. | `/home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped` |
-| 2753-015 | reproduced | strict_c11_pid_t_visibility | Export introduces `pid_t`, strict `-std=c11` fails (`unknown type name`). | `/home/cyuan/projects/Slicing/issues/015-posix-pid_t-missing` |
-| 2753-016 | reproduced | slice_loop_inv_nyi_abort | `-slice-loop-inv` hits NYI path in term-lval dependency computation. | `/home/cyuan/projects/Slicing/issues/016-slicing-term-lval-deps` |
+| 2753-007 | reproduced | atomic_runtime_symbol_missing | Exported slice keeps `__fc_atomic_*` calls but lacks linkable implementations. | `Slicing/issues/007-c11-atomics-undefined-symbols` |
+| 2753-010 | reproduced | lifecycle_hook_semantic_drop | `constructor/destructor/atexit/cleanup` effects dropped, semantics diverge. | `Slicing/issues/010-gnu-constructor-dropped` |
+| 2753-015 | reproduced | strict_c11_pid_t_visibility | Export introduces `pid_t`, strict `-std=c11` fails (`unknown type name`). | `Slicing/issues/015-posix-pid_t-missing` |
+| 2753-016 | reproduced | slice_loop_inv_nyi_abort | `-slice-loop-inv` hits NYI path in term-lval dependency computation. | `Slicing/issues/016-slicing-term-lval-deps` |
 
 ## Paper Counts
 

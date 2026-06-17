@@ -5,7 +5,7 @@
 echo "=== Frama-C Slicer Functionality Coverage Analysis ==="
 
 # 测试文件
-TEST_FILE="/home/chuang/FramaCsliceNew/creal/defects/test80_表达式丢失/slicer_coverage_test.c"
+TEST_FILE="./slicer_coverage_test.c"
 
 # 创建结果目录
 mkdir -p slicer_test_results

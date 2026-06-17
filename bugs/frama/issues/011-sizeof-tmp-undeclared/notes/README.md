@@ -8,14 +8,14 @@
 这更像是“导出/打印阶段对 AST 重写/语句重排”带来的不一致（将数组声明提到前面但忘了引入对应的临时符号或替换回原表达式）。
 
 ## 最小复现用例
-- [value_sizeof_buf_of_sizeof_struct.c](file:///home/cyuan/projects/Slicing/issues/011-sizeof-tmp-undeclared/cases/value_sizeof_buf_of_sizeof_struct.c)
+- [value_sizeof_buf_of_sizeof_struct.c](issues/011-sizeof-tmp-undeclared/cases/value_sizeof_buf_of_sizeof_struct.c)
 
 对应切片导出产物：
-- [value_sizeof_buf_of_sizeof_struct.sliced.c](file:///home/cyuan/projects/Slicing/issues/011-sizeof-tmp-undeclared/artifacts/value_sizeof_buf_of_sizeof_struct.sliced.c)
+- [value_sizeof_buf_of_sizeof_struct.sliced.c](issues/011-sizeof-tmp-undeclared/artifacts/value_sizeof_buf_of_sizeof_struct.sliced.c)
 
 ## 变体（同类触发）
-- [value_memcpy_alias.c](file:///home/cyuan/projects/Slicing/issues/011-sizeof-tmp-undeclared/cases/value_memcpy_alias.c)
-- [value_memcpy_alias.sliced.c](file:///home/cyuan/projects/Slicing/issues/011-sizeof-tmp-undeclared/artifacts/value_memcpy_alias.sliced.c)
+- [value_memcpy_alias.c](issues/011-sizeof-tmp-undeclared/cases/value_memcpy_alias.c)
+- [value_memcpy_alias.sliced.c](issues/011-sizeof-tmp-undeclared/artifacts/value_memcpy_alias.sliced.c)
 
 ## 复现命令
 ```bash

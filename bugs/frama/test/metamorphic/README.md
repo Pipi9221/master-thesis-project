@@ -10,7 +10,7 @@
 - MR-P1（Dead Code Injection）：新增未被调用的函数/全局，不应出现在切片结果中。
 - MR-P2（Dead Global Injection）：新增只在不可达路径或未被调用函数里写入的全局，不应出现在切片结果中。
 
-本目录当前实现了 MR-P1/MR-P2：生成变体时会注入 `mt_noise_*` / `mt_g_*`，并自动在用例头部加 `EXPECT-ABSENT`，由现有 [run_case.sh](file:///home/cyuan/projects/Slicing/test/run_case.sh) 完成检查。
+本目录当前实现了 MR-P1/MR-P2：生成变体时会注入 `mt_noise_*` / `mt_g_*`，并自动在用例头部加 `EXPECT-ABSENT`，由现有 [run_case.sh](test/run_case.sh) 完成检查。
 
 ### 2) 正确性问题（缺少必要步骤）
 典型 MR：做语义等价变换（如分解表达式、重命名、冗余括号、等价控制流），切片后对准则的观测结果应保持一致。

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -u
-BASE=/home/cyuan/projects/Slicing
+BASE="${SLICING_BASE:-../Slicing}"
 OUT=/paper-verification-2026-03-27
 LOG=/logs
 RES=/results

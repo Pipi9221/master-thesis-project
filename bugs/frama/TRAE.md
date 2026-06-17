@@ -34,8 +34,8 @@
 - 批量运行：Slicing/test/run_all.sh
 
 差异归类与回溯定位（slicing 插件）
-- 命令行参数与切片标准入口：[slicingParameters.ml](file:///home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/plugins/slicing/slicingParameters.ml)
-- 切片主入口（触发 Eva、创建/导出项目、应用请求）：[register.ml](file:///home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/plugins/slicing/register.ml)
+- 命令行参数与切片标准入口：[slicingParameters.ml](frama-c-30.0-Zinc/src/plugins/slicing/slicingParameters.ml)
+- 切片主入口（触发 Eva、创建/导出项目、应用请求）：[register.ml](frama-c-30.0-Zinc/src/plugins/slicing/register.ml)
 - 发现差异时优先归类：返回码不一致（正确性）、切片后无法编译（健壮性）、明显保留无关语句（精度）、运行异常/崩溃（健壮性）。
 为了完成我们的实验目的，你需要从多个角度去进行实验。
 1、程序切片的原理

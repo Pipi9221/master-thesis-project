@@ -204,7 +204,7 @@ while (1) {
 
 **测试时间**: 2025-10-24 15:48-15:49  
 **测试环境**: WSL2 Ubuntu  
-**测试程序**: `/home/chuang/FramaCsliceNew/debug_deadloop_test47/test47_backup/mutant_program`  
+**测试程序**: `FramaCsliceNew/debug_deadloop_test47/test47_backup/mutant_program`  
 **测试方法**: 直接运行 + top监控  
 **测试结果**: ✅ 成功重现死循环和CPU爆满
 

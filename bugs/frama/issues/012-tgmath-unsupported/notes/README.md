@@ -11,7 +11,7 @@
 - Frama-C: 30.0 (Zinc)
 
 ## 复现用例
-- [return_tgmath_unsupported.c](file:///home/cyuan/projects/Slicing/issues/012-tgmath-unsupported/cases/return_tgmath_unsupported.c)
+- [return_tgmath_unsupported.c](issues/012-tgmath-unsupported/cases/return_tgmath_unsupported.c)
 
 ## 复现命令
 ```bash

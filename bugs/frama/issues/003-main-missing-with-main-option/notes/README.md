@@ -5,10 +5,10 @@
 - `undefined reference to main`
 
 ## 复现用例
-- [value_entry_point_option_main.c](file:///home/cyuan/projects/Slicing/issues/003-main-missing-with-main-option/cases/value_entry_point_option_main.c)
+- [value_entry_point_option_main.c](issues/003-main-missing-with-main-option/cases/value_entry_point_option_main.c)
 
 对应切片导出产物：
-- [value_entry_point_option_main.sliced.c](file:///home/cyuan/projects/Slicing/issues/003-main-missing-with-main-option/artifacts/value_entry_point_option_main.sliced.c)
+- [value_entry_point_option_main.sliced.c](issues/003-main-missing-with-main-option/artifacts/value_entry_point_option_main.sliced.c)
 
 ## 复现命令
 ```bash
@@ -21,5 +21,5 @@ gcc -std=c11 -O0 -Wall -Wextra artifacts/value_entry_point_option_main.sliced.c 
 ```
 
 ## 观察点
-- 导出的 `.sliced.c` 里只保留了 `foo` 和被选中的全局 `g`，没有 `main`（见 [value_entry_point_option_main.sliced.c](file:///home/cyuan/projects/Slicing/issues/003-main-missing-with-main-option/artifacts/value_entry_point_option_main.sliced.c)）。
+- 导出的 `.sliced.c` 里只保留了 `foo` 和被选中的全局 `g`，没有 `main`（见 [value_entry_point_option_main.sliced.c](issues/003-main-missing-with-main-option/artifacts/value_entry_point_option_main.sliced.c)）。
 

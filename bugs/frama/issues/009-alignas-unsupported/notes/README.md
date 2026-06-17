@@ -8,7 +8,7 @@ _Alignas is currently unsupported by Frama-C.
 因此无法进入后续 Eva/Slicing 阶段。
 
 ## 复现用例
-- [return_c11_alignas_alignof.c](file:///home/cyuan/projects/Slicing/issues/009-alignas-unsupported/cases/return_c11_alignas_alignof.c)
+- [return_c11_alignas_alignof.c](issues/009-alignas-unsupported/cases/return_c11_alignas_alignof.c)
 
 ## 复现命令
 ```bash

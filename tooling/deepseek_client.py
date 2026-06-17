@@ -85,8 +85,8 @@ def main() -> None:
     parser.add_argument("--prompt-file", required=True, help="Path to prompt text file")
     parser.add_argument("--output-file", required=True, help="Path to output C source file")
     parser.add_argument("--api-key", default=None, help="DeepSeek API key")
-    parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help="DeepSeek API base URL")
-    parser.add_argument("--model", default=DEFAULT_MODEL, help="Model name")
+    parser.add_argument("--base-url", default=os.environ.get("DEEPSEEK_BASE_URL", DEFAULT_BASE_URL), help="DeepSeek API base URL")
+    parser.add_argument("--model", default=os.environ.get("DEEPSEEK_MODEL", DEFAULT_MODEL), help="Model name")
     args = parser.parse_args()
 
     api_key = args.api_key or os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")

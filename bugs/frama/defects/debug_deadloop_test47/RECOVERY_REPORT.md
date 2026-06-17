@@ -110,17 +110,17 @@ while (1) {
 ### 持续监控
 ```bash
 # 实时监控
-tail -f /home/chuang/FramaCsliceNew/continuous_exp_5000.log
+tail -f FramaCsliceNew/continuous_exp_5000.log
 
 # 统计信息
-cd /home/chuang/FramaCsliceNew/creal
+cd FramaCsliceNew/creal
 python3 experiment_tracker.py
 ```
 
 ## 📁 相关文件
 
 所有分析文件保存在:
-`/home/chuang/FramaCsliceNew/debug_deadloop_test47/`
+`FramaCsliceNew/debug_deadloop_test47/`
 
 包括:
 - DEADLOOP_SCENE.md - 现场记录

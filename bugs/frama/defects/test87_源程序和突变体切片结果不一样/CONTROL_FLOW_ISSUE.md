@@ -13,7 +13,7 @@ Frama-C slicing tool incorrectly preserves code blocks that are statically deter
 
 ## Test Case Location
 
-Test case located in: `/home/chuang/FramaCsliceNew/creal/defects/test87_源程序和突变体切片结果不一样/`
+Test case located in: `FramaCsliceNew/creal/defects/test87_源程序和突变体切片结果不一样/`
 
 Key files:
 - `source_g1141_only.c`: Original sliced program

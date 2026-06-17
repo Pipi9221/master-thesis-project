@@ -3,7 +3,7 @@
 set -e
 
 echo "=== Building and running original program ==="
-cd /home/chuang/FramaCSliceTesting/bugs/test8
+cd "$(dirname "$0")"
 gcc -o 50NYE5_seed_syn0 50NYE5_seed_syn0.c -lm
 echo "Original program output:"
 ./50NYE5_seed_syn0 | grep "g_371"

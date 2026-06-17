@@ -83,17 +83,17 @@ So while the dropped `g_1488` / `g_1883` pointer chain is the most visible sympt
 
 ## Relevant Frama-C locations
 - Statement visibility:
-  - `/home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/plugins/slicing/slicingTransform.ml:103`
+  - `Slicing/frama-c-30.0-Zinc/src/plugins/slicing/slicingTransform.ml:103`
 - Local-variable visibility:
-  - `/home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/plugins/slicing/slicingTransform.ml:383`
+  - `Slicing/frama-c-30.0-Zinc/src/plugins/slicing/slicingTransform.ml:383`
 - Local filtering (keep locals):
-  - `/home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/kernel_services/ast_transformations/filter.ml:519`
+  - `Slicing/frama-c-30.0-Zinc/src/kernel_services/ast_transformations/filter.ml:519`
 - Invisible `Local_init` rewritten as undefined local:
-  - `/home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/kernel_services/ast_transformations/filter.ml:562`
-  - `/home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/kernel_services/ast_transformations/filter.ml:570`
+  - `Slicing/frama-c-30.0-Zinc/src/kernel_services/ast_transformations/filter.ml:562`
+  - `Slicing/frama-c-30.0-Zinc/src/kernel_services/ast_transformations/filter.ml:570`
 - Distinct mark keys:
-  - local var mark: `/home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/plugins/slicing/fct_slice.ml:1390`
-  - stmt mark: `/home/cyuan/projects/Slicing/frama-c-30.0-Zinc/src/plugins/slicing/fct_slice.ml:1403`
+  - local var mark: `Slicing/frama-c-30.0-Zinc/src/plugins/slicing/fct_slice.ml:1390`
+  - stmt mark: `Slicing/frama-c-30.0-Zinc/src/plugins/slicing/fct_slice.ml:1403`
 
 ## Classification
 - Primary: slicing/export mark incoherence for local initializer chains.

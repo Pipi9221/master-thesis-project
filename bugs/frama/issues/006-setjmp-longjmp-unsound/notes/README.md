@@ -2,10 +2,10 @@
 当源程序使用 `setjmp/longjmp` 改变控制流时，在 `-slice-return main` 下导出的 `.sliced.c` 可能删除关键路径（例如触发 `longjmp` 的调用），导致切片后 `main` 返回值与原程序不一致。
 
 ## 复现用例
-- [return_setjmp_longjmp.c](file:///home/cyuan/projects/Slicing/issues/006-setjmp-longjmp-unsound/cases/return_setjmp_longjmp.c)
+- [return_setjmp_longjmp.c](issues/006-setjmp-longjmp-unsound/cases/return_setjmp_longjmp.c)
 
 对应切片导出产物：
-- [return_setjmp_longjmp.sliced.c](file:///home/cyuan/projects/Slicing/issues/006-setjmp-longjmp-unsound/artifacts/return_setjmp_longjmp.sliced.c)
+- [return_setjmp_longjmp.sliced.c](issues/006-setjmp-longjmp-unsound/artifacts/return_setjmp_longjmp.sliced.c)
 
 ## 复现命令
 ```bash

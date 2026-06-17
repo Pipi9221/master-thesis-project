@@ -5,7 +5,7 @@
 echo "=== Frama-C Slicing Tool Coverage Analysis ==="
 
 # 测试文件
-TEST_FILE="/home/chuang/FramaCsliceNew/creal/defects/test80_表达式丢失/coverage_test.c"
+TEST_FILE="./coverage_test.c"
 
 # 1. 基本的值分析
 echo "1. 执行值分析..."

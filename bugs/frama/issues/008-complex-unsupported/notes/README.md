@@ -8,7 +8,7 @@
 导致 Frama-C 无法解析该源文件，从而无法进行切片。
 
 ## 复现用例
-- [return_complex_double.c](file:///home/cyuan/projects/Slicing/issues/008-complex-unsupported/cases/return_complex_double.c)
+- [return_complex_double.c](issues/008-complex-unsupported/cases/return_complex_double.c)
 
 ## 复现命令
 ```bash

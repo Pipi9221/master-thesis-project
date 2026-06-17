@@ -13,20 +13,37 @@ Recommended split:
 - `include/`: AST visitors, rewrite helpers, shared data structures
 - `src/`: entrypoint, MR2/MR3 transformers, site discovery, emission
 
-Current local environment note:
+Build prerequisites:
 
-- WSL has LLVM 14 binaries available under `/usr/lib/llvm-14/bin/`.
-- `clang` and `llvm-config` are present there.
-- `Clang Tooling` development headers come from `libclang-14-dev`.
-- `csmith` is expected on the Linux path, with headers under `/usr/include/csmith`.
-- the mutator also accepts `CSMITH_INCLUDE_DIR` to override the default
-  header search path when AST parsing CSmith seeds
+- LLVM/Clang 14+ development libraries (e.g. `libclang-14-dev` on Debian/Ubuntu)
+- CMake 3.20+
+- C++17 compiler
 
-Minimal build flow in WSL:
+The CMakeLists.txt reads `LLVM_DIR` and `Clang_DIR` from the environment if set,
+otherwise defaults to `/usr/lib/llvm-14/lib/cmake/llvm` and
+`/usr/lib/llvm-14/lib/cmake/clang`. Override them when LLVM is installed
+elsewhere:
+
+```bash
+# Example: non-standard LLVM install
+export LLVM_DIR=/opt/llvm-16/lib/cmake/llvm
+export Clang_DIR=/opt/llvm-16/lib/cmake/clang
+```
+
+Minimal build flow:
 
 ```bash
 cd $PROJECT
 cmake -S tooling -B tooling/build -DCMAKE_BUILD_TYPE=Debug
+cmake --build tooling/build -j2
+```
+
+Alternatively pass paths directly on the command line:
+
+```bash
+cmake -S tooling -B tooling/build \
+    -DLLVM_DIR=/opt/llvm-16/lib/cmake/llvm \
+    -DClang_DIR=/opt/llvm-16/lib/cmake/clang
 cmake --build tooling/build -j2
 ```
 

@@ -6,10 +6,10 @@
 - `lvalue required as increment operand`
 
 ## 复现用例
-- [return_varargs_stdarg.c](file:///home/cyuan/projects/Slicing/issues/005-varargs-broken-export/cases/return_varargs_stdarg.c)
+- [return_varargs_stdarg.c](issues/005-varargs-broken-export/cases/return_varargs_stdarg.c)
 
 对应切片导出产物：
-- [return_varargs_stdarg.sliced.c](file:///home/cyuan/projects/Slicing/issues/005-varargs-broken-export/artifacts/return_varargs_stdarg.sliced.c)
+- [return_varargs_stdarg.sliced.c](issues/005-varargs-broken-export/artifacts/return_varargs_stdarg.sliced.c)
 
 ## 复现命令
 ```bash

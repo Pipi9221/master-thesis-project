@@ -8,21 +8,21 @@
 这属于“导出/打印阶段在提升声明或重写 sizeof 表达式时未正确替换/绑定临时符号”的问题，和 issue 011（`sizeof(...)` 里生成未声明 tmp_*）是近邻，但更具体在“对解引用的 sizeof”上多了一层表达式形态。
 
 ## 最小复现用例
-- [value_sizeof_deref_buf.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_deref_buf.c)
+- [value_sizeof_deref_buf.c](issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_deref_buf.c)
 
 对应切片导出产物：
-- [value_sizeof_deref_buf.sliced.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_deref_buf.sliced.c)
+- [value_sizeof_deref_buf.sliced.c](issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_deref_buf.sliced.c)
 
 ## 变体（同类触发）
 - `sizeof(p[0])`：
-  - [value_sizeof_index_buf.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_index_buf.c)
-  - [value_sizeof_index_buf.sliced.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_index_buf.sliced.c)
+  - [value_sizeof_index_buf.c](issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_index_buf.c)
+  - [value_sizeof_index_buf.sliced.c](issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_index_buf.sliced.c)
 - `sizeof(*(cond ? p : q))`：
-  - [value_sizeof_conditional_deref.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_conditional_deref.c)
-  - [value_sizeof_conditional_deref.sliced.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_conditional_deref.sliced.c)
+  - [value_sizeof_conditional_deref.c](issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_conditional_deref.c)
+  - [value_sizeof_conditional_deref.sliced.c](issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_conditional_deref.sliced.c)
 - `sizeof(*(&s))`：
-  - [value_sizeof_addr_deref.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_addr_deref.c)
-  - [value_sizeof_addr_deref.sliced.c](file:///home/cyuan/projects/Slicing/issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_addr_deref.sliced.c)
+  - [value_sizeof_addr_deref.c](issues/013-sizeof-deref-tmp-undeclared/cases/value_sizeof_addr_deref.c)
+  - [value_sizeof_addr_deref.sliced.c](issues/013-sizeof-deref-tmp-undeclared/artifacts/value_sizeof_addr_deref.sliced.c)
 
 ## 复现命令
 ```bash

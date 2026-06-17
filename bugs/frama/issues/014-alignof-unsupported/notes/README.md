@@ -11,7 +11,7 @@ _Alignof is currently unsupported by Frama-C.
 - Frama-C: 30.0 (Zinc)
 
 ## 复现用例
-- [value_alignof_struct.c](file:///home/cyuan/projects/Slicing/issues/014-alignof-unsupported/cases/value_alignof_struct.c)
+- [value_alignof_struct.c](issues/014-alignof-unsupported/cases/value_alignof_struct.c)
 
 ## 复现命令
 ```bash

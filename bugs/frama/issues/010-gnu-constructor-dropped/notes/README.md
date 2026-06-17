@@ -2,16 +2,16 @@
 当源程序依赖“main 之外的生命周期钩子”产生可观察行为时，在 `-slice-return main` 下切片导出的 `.sliced.c` 可能丢失这些钩子逻辑，导致 `main` 的返回值（以及输出/退出码）与原程序不一致。
 
 ## 复现用例
-- [return_gnu_constructor_init.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/cases/return_gnu_constructor_init.c)
-- [return_atexit_exitcode.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/cases/return_atexit_exitcode.c)
-- [return_gnu_destructor_exitcode.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/cases/return_gnu_destructor_exitcode.c)
-- [return_gnu_cleanup_attribute.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/cases/return_gnu_cleanup_attribute.c)
+- [return_gnu_constructor_init.c](issues/010-gnu-constructor-dropped/cases/return_gnu_constructor_init.c)
+- [return_atexit_exitcode.c](issues/010-gnu-constructor-dropped/cases/return_atexit_exitcode.c)
+- [return_gnu_destructor_exitcode.c](issues/010-gnu-constructor-dropped/cases/return_gnu_destructor_exitcode.c)
+- [return_gnu_cleanup_attribute.c](issues/010-gnu-constructor-dropped/cases/return_gnu_cleanup_attribute.c)
 
 对应切片导出产物：
-- [return_gnu_constructor_init.sliced.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/artifacts/return_gnu_constructor_init.sliced.c)
-- [return_atexit_exitcode.sliced.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/artifacts/return_atexit_exitcode.sliced.c)
-- [return_gnu_destructor_exitcode.sliced.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/artifacts/return_gnu_destructor_exitcode.sliced.c)
-- [return_gnu_cleanup_attribute.sliced.c](file:///home/cyuan/projects/Slicing/issues/010-gnu-constructor-dropped/artifacts/return_gnu_cleanup_attribute.sliced.c)
+- [return_gnu_constructor_init.sliced.c](issues/010-gnu-constructor-dropped/artifacts/return_gnu_constructor_init.sliced.c)
+- [return_atexit_exitcode.sliced.c](issues/010-gnu-constructor-dropped/artifacts/return_atexit_exitcode.sliced.c)
+- [return_gnu_destructor_exitcode.sliced.c](issues/010-gnu-constructor-dropped/artifacts/return_gnu_destructor_exitcode.sliced.c)
+- [return_gnu_cleanup_attribute.sliced.c](issues/010-gnu-constructor-dropped/artifacts/return_gnu_cleanup_attribute.sliced.c)
 
 ## 复现命令
 ```bash

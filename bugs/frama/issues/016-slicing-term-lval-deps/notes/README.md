@@ -12,10 +12,10 @@ Plug-in slicing aborted: unimplemented feature.
 - Frama-C: 30.0 (Zinc)
 
 ## 最小复现用例
-- [loopinv_acsl_forall_zone.c](file:///home/cyuan/projects/Slicing/issues/016-slicing-term-lval-deps/cases/loopinv_acsl_forall_zone.c)
+- [loopinv_acsl_forall_zone.c](issues/016-slicing-term-lval-deps/cases/loopinv_acsl_forall_zone.c)
 
 ## 复现日志
-- [loopinv_acsl_forall_zone.frama.log](file:///home/cyuan/projects/Slicing/issues/016-slicing-term-lval-deps/artifacts/loopinv_acsl_forall_zone.frama.log)
+- [loopinv_acsl_forall_zone.frama.log](issues/016-slicing-term-lval-deps/artifacts/loopinv_acsl_forall_zone.frama.log)
 
 ## 复现命令
 ```bash

@@ -4,14 +4,14 @@
 - 典型报错：`undefined reference to __fc_vla_alloc`
 
 复现用例：
-- [value_vla_local_index.c](file:///home/cyuan/projects/Slicing/issues/004-vla-support/cases/value_vla_local_index.c)
-- [value_vla_ptr_alias.c](file:///home/cyuan/projects/Slicing/issues/004-vla-support/cases/value_vla_ptr_alias.c)
-- [return_vla_scope_escape.c](file:///home/cyuan/projects/Slicing/issues/004-vla-support/cases/return_vla_scope_escape.c)
+- [value_vla_local_index.c](issues/004-vla-support/cases/value_vla_local_index.c)
+- [value_vla_ptr_alias.c](issues/004-vla-support/cases/value_vla_ptr_alias.c)
+- [return_vla_scope_escape.c](issues/004-vla-support/cases/return_vla_scope_escape.c)
 
 对应导出产物：
-- [value_vla_local_index.sliced.c](file:///home/cyuan/projects/Slicing/issues/004-vla-support/artifacts/value_vla_local_index.sliced.c)
-- [value_vla_ptr_alias.sliced.c](file:///home/cyuan/projects/Slicing/issues/004-vla-support/artifacts/value_vla_ptr_alias.sliced.c)
-- [return_vla_scope_escape.sliced.c](file:///home/cyuan/projects/Slicing/issues/004-vla-support/artifacts/return_vla_scope_escape.sliced.c)
+- [value_vla_local_index.sliced.c](issues/004-vla-support/artifacts/value_vla_local_index.sliced.c)
+- [value_vla_ptr_alias.sliced.c](issues/004-vla-support/artifacts/value_vla_ptr_alias.sliced.c)
+- [return_vla_scope_escape.sliced.c](issues/004-vla-support/artifacts/return_vla_scope_escape.sliced.c)
 
 复现命令（以 value_vla_local_index 为例）：
 ```bash
@@ -33,7 +33,7 @@ gcc -std=c11 -O0 -Wall -Wextra artifacts/value_vla_local_index.sliced.c -o /tmp/
 ```
 
 复现用例：
-- [value_vla_param_2d.c](file:///home/cyuan/projects/Slicing/issues/004-vla-support/cases/value_vla_param_2d.c)
+- [value_vla_param_2d.c](issues/004-vla-support/cases/value_vla_param_2d.c)
 
 复现命令：
 ```bash

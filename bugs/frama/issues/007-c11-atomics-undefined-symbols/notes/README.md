@@ -6,10 +6,10 @@
 - `undefined reference to __fc_atomic_load`
 
 ## 复现用例
-- [return_c11_atomic.c](file:///home/cyuan/projects/Slicing/issues/007-c11-atomics-undefined-symbols/cases/return_c11_atomic.c)
+- [return_c11_atomic.c](issues/007-c11-atomics-undefined-symbols/cases/return_c11_atomic.c)
 
 对应切片导出产物：
-- [return_c11_atomic.sliced.c](file:///home/cyuan/projects/Slicing/issues/007-c11-atomics-undefined-symbols/artifacts/return_c11_atomic.sliced.c)
+- [return_c11_atomic.sliced.c](issues/007-c11-atomics-undefined-symbols/artifacts/return_c11_atomic.sliced.c)
 
 ## 复现命令
 ```bash
