@@ -61,32 +61,43 @@ Current runtime assumption:
   - `CLANG_BIN`
   - `CSMITH_INCLUDE_DIR`
 
-## Quick verification
+## Quick Start
 
-Clone and verify the Python pipeline works (no external tools needed):
+### 1. 克隆 & 配置
 
 ```bash
 git clone <repo-url> project
 cd project
+
+# 从模板创建本地配置文件
+cp .env.example .env
+# 编辑 .env，填入你本地的工具路径（详见下方 Prerequisites）
+# source .env   # 使配置在当期 shell 生效
+```
+
+### 2. 安装外部工具
+
+至少需要一个切片器（Frama-C 或 DG/llvm-slicer）。如果只跑 MR4 或 CSmith 种子，无需 Creal 和 mr_ast_tool。
+详见 [Prerequisites](#prerequisites) 各工具安装说明。
+
+### 3. 验证
+
+```bash
+# 不需要任何外部工具即可跑通核心 pipeline 测试
 PYTHONPATH=src python3 -m pytest tests/ -q
+# 输出: 225 passed, 8 skipped
 ```
 
-Expected output when no external tools are installed:
+被跳过的 8 个测试需要：
 
-```
-225 passed, 8 skipped
-```
+| 条件 | 需要什么 |
+|------|---------|
+| `DG_LLVM_SLICER_BINARY` | 在 `.env` 中配置，或构建 [DG](https://github.com/mchalupa/dg) |
+| `mr_ast_tool` | `cmake -S tooling -B tooling/build && cmake --build tooling/build` |
 
-The 8 skipped tests require one of:
+配置好外部工具后全部 233 个测试通过。
 
-- `DG_LLVM_SLICER_BINARY` — path to `llvm-slicer` (set env var or build [DG](https://github.com/mchalupa/dg))
-- `mr_ast_tool` — build with `cmake -S tooling -B tooling/build && cmake --build tooling/build`
-
-After configuring external tools, all 233 tests pass.
-
-> **Note**: The core pipeline, all seed sources, and both oracle judges are pure Python
-> (standard library only, no `pip install` required). Actual slicing requires the external
-> tools listed in [Prerequisites](#prerequisites).
+> **说明**：核心 pipeline、所有种子源、Oracle 判定逻辑都是纯 Python（标准库即可，无需 `pip install`）。实际切片需要上述外部工具。
 
 ## Prerequisites
 
