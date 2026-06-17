@@ -12,12 +12,17 @@ from pathlib import Path
 
 
 def resolve_dg_slicer() -> str:
-    """Return the path to the ``llvm-slicer`` binary."""
-    env = os.environ.get("DG_SLICER", "").strip()
-    if env:
-        return env
+    """Return the path to the ``llvm-slicer`` binary.
 
-    # Well-known build paths under DG_HOME
+    Checks, in order: ``DG_LLVM_SLICER_BINARY`` env var, ``DG_SLICER`` env var,
+    ``DG_HOME``/build/tools/llvm-slicer, then falls back to ``llvm-slicer`` on
+    ``$PATH``.
+    """
+    for var in ("DG_LLVM_SLICER_BINARY", "DG_SLICER"):
+        env = os.environ.get(var, "").strip()
+        if env:
+            return env
+
     dg_home = os.environ.get("DG_HOME", "").strip()
     if dg_home:
         candidate = os.path.join(dg_home, "build", "tools", "llvm-slicer")
