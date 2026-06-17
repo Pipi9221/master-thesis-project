@@ -29,7 +29,10 @@ from common.tool_paths import resolve_dg_slicer, resolve_dg_lli, resolve_dg_clan
 
 
 _EXPERIMENTS = Path(
-    "/home/cyuan/projects/dg-experiments/comfirm-issue/cases/precision"
+    os.environ.get(
+        "DG_EXPERIMENTS_CASES",
+        str(Path(__file__).resolve().parent.parent / "dg-experiments" / "comfirm-issue" / "cases" / "precision"),
+    )
 )
 
 

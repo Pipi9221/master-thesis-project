@@ -11,6 +11,7 @@ tmp_*/
 
 # Local environment configuration (copy .env.example to .env and adapt)
 .env
+.claude/settings.local.json
 
 # Batch experiment output (generated)
 experiment/batch-run/

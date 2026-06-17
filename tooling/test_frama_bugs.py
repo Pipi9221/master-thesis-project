@@ -53,10 +53,10 @@ _SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-FRAMA_C = "/home/cyuan/.opam/4.14.2/bin/frama-c"
-CSMITH_INCLUDE = "/usr/include/csmith"
+FRAMA_C = os.environ.get("FRAMA_C_BINARY", "frama-c")
+CSMITH_INCLUDE = os.environ.get("CSMITH_INCLUDE_DIR", "/usr/include/csmith")
 FRAMA_CPP_FLAG = f"-cpp-extra-args=-I{CSMITH_INCLUDE}"
-BUGS_BASE = Path("/home/cyuan/projects/master-thesis/project/bugs/frama")
+BUGS_BASE = Path(__file__).resolve().parent.parent / "bugs" / "frama"
 
 
 def _run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:

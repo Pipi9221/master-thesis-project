@@ -24,11 +24,6 @@ def resolve_dg_slicer() -> str:
         if Path(candidate).exists():
             return candidate
 
-    # Default local build location
-    local_build = "/home/cyuan/projects/dg/build/tools/llvm-slicer"
-    if Path(local_build).exists():
-        return local_build
-
     return "llvm-slicer"
 
 
