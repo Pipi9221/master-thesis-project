@@ -330,7 +330,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--mr", choices=("MR1", "MR2", "MR3", "MR4"), default="MR2")
     parser.add_argument("--tool", choices=("frama", "dg"))
     parser.add_argument("--tools", default="frama,dg")
-    parser.add_argument("--mr-ast-tool")
+    parser.add_argument("--mr-ast-tool", default=os.environ.get("MR_AST_TOOL_BIN"))
     parser.add_argument("--rng-seed-base", type=int, default=17)
     parser.add_argument("--count", type=int, default=1)
     parser.add_argument("--csmith-binary", default="csmith")

@@ -495,7 +495,7 @@ def main() -> int:
     parser.add_argument("--mr", default="MR2")
     parser.add_argument("--tool", default=None)
     parser.add_argument("--tools", default="frama,dg")
-    parser.add_argument("--mr-ast-tool", default=None)
+    parser.add_argument("--mr-ast-tool", default=os.environ.get("MR_AST_TOOL_BIN") or None)
     parser.add_argument("--rng-seed-base", type=int, default=17)
 
     # Additional passthrough (partial - extend as needed)
