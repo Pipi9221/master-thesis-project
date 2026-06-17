@@ -56,7 +56,10 @@ if _SRC not in sys.path:
 FRAMA_C = os.environ.get("FRAMA_BINARY", "frama-c")
 CSMITH_INCLUDE = os.environ.get("CSMITH_INCLUDE_DIR", "/usr/include/csmith")
 FRAMA_CPP_FLAG = f"-cpp-extra-args=-I{CSMITH_INCLUDE}"
-BUGS_BASE = Path(__file__).resolve().parent.parent / "bugs" / "frama"
+BUGS_BASE = Path(os.environ.get(
+    "FRAMA_BUGS_BASE",
+    str(Path(__file__).resolve().parent.parent / "bugs" / "frama"),
+))
 
 
 def _run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:

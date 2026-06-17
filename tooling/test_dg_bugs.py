@@ -46,15 +46,10 @@ BUG_C_SOURCE_MAP: dict[str, str] = {
     "S05-BUG-NORETURN-UNREACHABLE": "noreturn_exit_misslice.c",
 }
 
-# Path to DG experiments precision cases.
-# Set DG_EXPERIMENTS_CASES env var to override, otherwise expects a sibling
-# dg-experiments checkout.
-_EXPERIMENTS_CASES = Path(
-    os.environ.get(
-        "DG_EXPERIMENTS_CASES",
-        str(Path(__file__).resolve().parent.parent / "dg-experiments" / "comfirm-issue" / "cases" / "precision"),
-    )
-)
+_EXPERIMENTS_CASES = Path(os.environ.get(
+    "DG_EXPERIMENTS_CASES",
+    str(Path(__file__).resolve().parent.parent / "dg-experiments" / "comfirm-issue" / "cases" / "precision"),
+))
 
 
 class BugTestResult(NamedTuple):

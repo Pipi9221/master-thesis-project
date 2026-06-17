@@ -27,13 +27,10 @@ if _SRC not in sys.path:
 
 from common.tool_paths import resolve_dg_slicer, resolve_dg_lli, resolve_dg_clang
 
-
-_EXPERIMENTS = Path(
-    os.environ.get(
-        "DG_EXPERIMENTS_CASES",
-        str(Path(__file__).resolve().parent.parent / "dg-experiments" / "comfirm-issue" / "cases" / "precision"),
-    )
-)
+_EXPERIMENTS = Path(os.environ.get(
+    "DG_EXPERIMENTS_CASES",
+    str(Path(__file__).resolve().parent.parent / "dg-experiments" / "comfirm-issue" / "cases" / "precision"),
+))
 
 
 def _run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
