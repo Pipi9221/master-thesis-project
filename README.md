@@ -3,19 +3,19 @@
 This directory is the working root for the thesis prototype that constructs
 and evaluates `MR1`, `MR2`, `MR3`, and `MR4` relations over C seeds.
 
-Phase 1 is intentionally narrow:
+Phase 1 (MR1-MR4 oracles, seed sources, bug database) is complete.
+Phase 2 focuses on batch experiments, LLM-assisted judging, and thesis writing.
 
-- `MR1`: use Creal to emit a seed/mutant pair directly
+- `MR1`: seed/mutant pairs via Creal or LLM online dual-output generation
 - `MR2`: insert criterion-irrelevant data-flow noise on an executable path
 - `MR3`: insert criterion-related or criterion-adjacent code inside an
   unreachable control-flow wrapper
-- current implementation focus: turn `seed.c + criteria.json + rng_seed` into
-  replayable MR mutants
-- persist enough metadata to replay site selection and payload generation
-- run a minimal compile gate on each generated `mutant.c` and reject
-  syntactically invalid outputs
-- slicing/oracle now follows a shared protocol:
+- `MR4`: compare single-variable and multi-variable slices with union/intersection
+- slicing/oracle follows a shared protocol:
   `seed -> mutant -> slice(seed) -> slice(mutant) -> oracle_result.json`
+- LLM-assisted judge available for DG (MR1/MR2/MR3/MR4): hybrid or required mode
+- batch experiment controller (`pipeline/batch_controller.py`) for multi-seed,
+  multi-config runs
 - current slicing support matrix:
   - `frama`: phase-1 runnable oracle for MR1/MR2/MR3/MR4
     - `MR1`: slice both programs, instrument unsliced and sliced variants,
@@ -35,11 +35,12 @@ Phase 1 is intentionally narrow:
 
 Current project-level split:
 
-- `MR1` remains a special-case Creal relation
+- `MR1` supports both Creal (legacy) and LLM online dual-output seed generation
 - mutant generation entrypoints support `MR1`, `MR2`, `MR3`, and `MR4`
 - oracle entrypoints support `MR1`, `MR2`, `MR3`, and `MR4`
-- `pipeline.run_experiment` is the recommended single entrypoint for running
-  one `tool + MR` path end-to-end
+- `pipeline.run_experiment` is the recommended single-seed entrypoint
+- `pipeline.batch_controller` is the multi-seed batch entrypoint (see below)
+- LLM judge (`oracles/llm_judge.py`) provides hybrid/required judging for DG oracles
 
 Current runtime assumption:
 
@@ -179,6 +180,37 @@ Creal wraps CSmith and Synthesizer to emit semantic-preserving seed/mutant pairs
 
 Requires a local LLM CLI tool that accepts `--prompt-file` and `--output-file`.
 Configure via `--llm-command` template with `{prompt_file}` and `{output_file}` placeholders.
+
+Supports two generation modes:
+- **MR4**: generates a single C program exercising specified C language features
+- **MR1**: dual-output mode — generates both a seed and a semantically-equivalent structural variant (mutant) in one LLM call, suitable for MR1 without Creal
+
+### LLM-assisted judge (DG, optional)
+
+The DG oracle supports an AI-assisted judge mode (`--dg-judge-mode hybrid` or `required`)
+that uses an LLM to adjudicate slice equivalence when structural comparison is inconclusive.
+Configure via `--dg-llm-judge-command` (e.g., `python3 tooling/deepseek_judge.py --bundle {bundle_json}`).
+
+The judge receives a JSON bundle with seed/mutant IR diffs, criterion info, and slicing metadata,
+and returns a structured verdict (equivalent / not-equivalent / uncertain) with reasoning.
+
+### Batch experiments
+
+The batch controller (`src/pipeline/batch_controller.py`) runs multi-seed experiments across
+tool+MR combinations without requiring per-seed CLI invocation:
+
+```bash
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
+python3 -m pipeline.batch_controller \
+  --tools frama dg \
+  --mrs MR1 MR2 MR3 MR4 \
+  --seed-source csmith \
+  --count 50 \
+  --output-dir experiment/batch-run
+```
+
+Results are organized as `experiment/batch-run/<mr>-<tool>-<count>/` with per-seed subdirectories.
 
 ### Configuration reference
 
@@ -356,6 +388,22 @@ python3 -m pipeline.generate_mutants \
   --output-dir /tmp/mr-runs
 ```
 
+### LLM online MR1 dual-output (seed + mutant in one call)
+
+```bash
+cd $PROJECT
+PYTHONPATH=$PROJECT/src \
+python3 -m pipeline.generate_mutants \
+  --seed-source llm_online \
+  --mr MR1 \
+  --count 5 \
+  --llm-command "python3 -m llm_cli --prompt-file {prompt_file} --output-file {output_file}" \
+  --llm-feature-focus "指针数组与数据流" \
+  --llm-criteria "result,output" \
+  --llm-max-retries 5 \
+  --output-dir /tmp/mr-runs
+```
+
 ### LLM online with MR2/MR3 (requires --mr-ast-tool)
 
 ```bash
@@ -376,7 +424,7 @@ python3 -m pipeline.generate_mutants \
 
 - `docs/specs/`: locked design decisions and mutation contracts
 - `docs/methodology/`: experiment-facing notes and boundary assumptions
-- `tooling/`: the future `Clang LibTooling` mutator engine
+- `tooling/`: Clang LibTooling AST mutator (`mr_ast_tool`), bug test harnesses, and LLM judge integration
 - `src/`: orchestration, metadata, and validation helpers around the tooling
 - `experiment/`: batch-oriented inputs, outputs, and per-MR runs
 - `tests/`: fixtures plus unit/integration coverage for the prototype
