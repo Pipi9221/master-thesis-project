@@ -234,8 +234,26 @@ and returns a structured verdict (equivalent / not-equivalent / uncertain) with 
 
 ### Batch experiments
 
-The batch controller (`src/pipeline/batch_controller.py`) runs multi-seed experiments across
-tool+MR combinations without requiring per-seed CLI invocation:
+**Quick start — convenience launcher:**
+
+```bash
+cp .env.example .env        # edit .env with your local tool paths
+source .env
+./experiment/run_batch.sh frama          # Frama-C only, all 4 MRs
+./experiment/run_batch.sh dg             # DG only (LLM seeds), all 4 MRs
+./experiment/run_batch.sh all            # both tools, all 4 MRs
+./experiment/run_batch.sh dg MR2 MR3     # specific MRs only
+./experiment/run_batch.sh frama MR1 -- --count 50 --rng-seed-base 100  # extra args
+```
+
+The launcher uses:
+- Frama-C: `creal` seeds for MR1, `csmith` for MR2–MR4
+- DG: `llm_online` seeds for all MRs (small programs that compile to bitcode)
+
+**Manual batch controller invocation:**
+
+The batch controller (`src/pipeline/batch_controller.py`) provides finer control for
+multi-seed experiments across tool+MR combinations:
 
 ```bash
 cd $PROJECT
@@ -248,7 +266,7 @@ python3 -m pipeline.batch_controller \
   --output-dir experiment/batch-run
 ```
 
-Results are organized as `experiment/batch-run/<mr>-<tool>-<count>/` with per-seed subdirectories.
+Results are organized as `experiment/batch-run/<tool>/<mr>/` with per-seed subdirectories.
 
 ### Configuration reference
 
