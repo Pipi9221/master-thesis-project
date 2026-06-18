@@ -72,7 +72,11 @@ def extract_frama_statement_set(path: Path) -> set[str]:
             continue
         line = _strip_return_type(line)
         normalized = re.sub(r"\s+", " ", line)
-        statements.add(normalized)
+        # Strip trailing brace — Frama-C sometimes places "{" on the same line
+        # as the if/else/while/for header, sometimes on the next line.
+        normalized = re.sub(r"\s*\{\s*$", "", normalized).strip()
+        if normalized:
+            statements.add(normalized)
     return statements
 
 
