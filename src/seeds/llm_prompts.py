@@ -65,6 +65,56 @@ MR1_DUAL_OUTPUT_PROMPT_TEMPLATE = PromptTemplate(
     placeholders=("feature_focus", "criteria", "dependency_focus"),
 )
 
+# MR2 dual-output prompt: seed + variant with added irrelevant data-flow noise.
+# The variant must have the same observable output as the seed, but with extra
+# redundant assignments, pointer chains, buffer copies etc. that slicing should remove.
+MR2_DUAL_OUTPUT_PROMPT_TEMPLATE = PromptTemplate(
+    template_text=(
+        "请生成一对单文件 C11 程序，用于测试静态后向程序切片工具的去噪能力。\n\n"
+        "要求：\n"
+        "1. 第一个程序（种子程序）必须能独立编译运行，通过 printf 输出观测变量 <criteria> 的值\n"
+        "2. 第二个程序（噪声注入变体）在种子程序的基础上增加以下无关数据流噪声：\n"
+        "   - 冗余的局部变量赋值和拷贝链\n"
+        "   - 额外的指针变量和中间缓冲区\n"
+        "   - 无关的结构体字段操作\n"
+        "   - 多余的 memcpy / 数组复制\n"
+        "   - 不影响 <criteria> 的额外函数调用\n"
+        "3. **关键**：噪声注入后 <criteria> 的最终输出值必须与种子程序完全相同\n"
+        "4. **关键**：观测变量 <criteria> 在种子和变体中必须保持完全相同的名称\n\n"
+        "程序应控制在 60–120 行，使用基本 C 特性（指针、数组、结构体、循环、函数调用）。\n"
+        "禁止使用：va_arg、setjmp/longjmp、原子操作、VLA、constructor/destructor。\n\n"
+        "请围绕 <feature_focus> 构造场景，使 <criteria> 的值依赖于 <dependency_focus>。\n\n"
+        "输出格式：先输出完整的种子程序，然后单独一行输出 // ===VARIANT===，"
+        "再输出完整的变体程序。仅输出 C 代码和分隔符，不要附加任何解释。"
+    ),
+    placeholders=("feature_focus", "criteria", "dependency_focus"),
+)
+
+# MR3 dual-output prompt: seed + variant with added irrelevant control-flow noise.
+# The variant must have the same observable output as the seed, but with extra
+# branches, switch cases, goto, dead code etc. that slicing should remove.
+MR3_DUAL_OUTPUT_PROMPT_TEMPLATE = PromptTemplate(
+    template_text=(
+        "请生成一对单文件 C11 程序，用于测试静态后向程序切片工具的去噪能力。\n\n"
+        "要求：\n"
+        "1. 第一个程序（种子程序）必须能独立编译运行，通过 printf 输出观测变量 <criteria> 的值\n"
+        "2. 第二个程序（控制流噪声变体）在种子程序的基础上增加以下无关控制流噪声：\n"
+        "   - 额外的 if/else 分支（不修改 <criteria> 的值）\n"
+        "   - 无关的 switch 语句\n"
+        "   - 多余的 goto 跳转和标签\n"
+        "   - 短路求值包装（如 if (1 || noisy_func())）\n"
+        "   - 形式上复杂但实际不可达的死代码路径\n"
+        "3. **关键**：噪声注入后 <criteria> 的最终输出值必须与种子程序完全相同\n"
+        "4. **关键**：观测变量 <criteria> 在种子和变体中必须保持完全相同的名称\n\n"
+        "程序应控制在 60–120 行，使用基本 C 特性（指针、数组、循环、if/else、switch、goto）。\n"
+        "禁止使用：va_arg、setjmp/longjmp、原子操作、VLA、constructor/destructor。\n\n"
+        "请围绕 <feature_focus> 构造场景，使 <criteria> 的值依赖于 <dependency_focus>。\n\n"
+        "输出格式：先输出完整的种子程序，然后单独一行输出 // ===VARIANT===，"
+        "再输出完整的变体程序。仅输出 C 代码和分隔符，不要附加任何解释。"
+    ),
+    placeholders=("feature_focus", "criteria", "dependency_focus"),
+)
+
 
 # MR4 seed prompt: asks the LLM to generate a program with multiple independent
 # criterion variables that can naturally form single- and multi-variable slices.
@@ -236,6 +286,128 @@ def build_mr1_dual_prompt(
     topic_hint = _build_topic_hint("MR1")
     parts = [base, "", topic_hint]
     return "\n".join(parts)
+
+
+def build_mr2_dual_prompt(
+    *,
+    feature_focus: str = "",
+    criteria: str = "keep",
+    dependency_focus: str = "",
+) -> str:
+    """Build the MR2 dual-output prompt (seed + noisy-data-flow variant in one LLM call)."""
+    if not feature_focus:
+        feature_focus = _default_feature_focus("MR2")
+    if not dependency_focus:
+        dependency_focus = _default_dependency_focus("MR2")
+    base = MR2_DUAL_OUTPUT_PROMPT_TEMPLATE.render(
+        feature_focus=feature_focus,
+        criteria=criteria,
+        dependency_focus=dependency_focus,
+    )
+    topic_hint = _build_topic_hint("MR2")
+    parts = [base, "", topic_hint]
+    return "\n".join(parts)
+
+
+def build_mr3_dual_prompt(
+    *,
+    feature_focus: str = "",
+    criteria: str = "keep",
+    dependency_focus: str = "",
+) -> str:
+    """Build the MR3 dual-output prompt (seed + noisy-control-flow variant in one LLM call)."""
+    if not feature_focus:
+        feature_focus = _default_feature_focus("MR3")
+    if not dependency_focus:
+        dependency_focus = _default_dependency_focus("MR3")
+    base = MR3_DUAL_OUTPUT_PROMPT_TEMPLATE.render(
+        feature_focus=feature_focus,
+        criteria=criteria,
+        dependency_focus=dependency_focus,
+    )
+    topic_hint = _build_topic_hint("MR3")
+    parts = [base, "", topic_hint]
+    return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# DG-specific simplified prompts (MR2 / MR3)
+#
+# The mr_ast_tool cannot safely mutate programs that use va_arg, setjmp/longjmp,
+# atomics, VLA, or constructor/destructor attributes.  These prompts instruct
+# the LLM to generate simpler programs that still exercise the relevant DG
+# slicing concerns but stay within the toolʼs safe subset of C11.
+# ---------------------------------------------------------------------------
+
+DG_MR2_SEED_PROMPT_TEMPLATE = PromptTemplate(
+    template_text=(
+        "请生成一个用于测试静态后向程序切片工具的单文件 C11 程序。"
+        "程序应可独立编译运行，并通过 printf 输出观测变量 <criteria> 的最终值。\n\n"
+        "**重要约束**：\n"
+        "1. 程序控制在 60–120 行，结构清晰\n"
+        "2. 必须包含一个或多个标量全局变量，变量名以 g_ 开头（如 g_result）\n"
+        "3. 观测变量 <criteria> 的值必须依赖于 <dependency_focus>\n"
+        "4. 程序中应包含独立的数据流链路：冗余指针、额外拷贝、无关缓冲区等\n"
+        "5. 只能使用基本 C 特性：指针、数组、结构体、循环、if/else、switch、函数调用\n"
+        "6. 禁止使用：va_arg、setjmp/longjmp、原子操作、VLA、constructor/destructor、内联汇编\n\n"
+        "请围绕 <feature_focus> 构造场景。输出仅包含完整 C 源代码，不要附加解释。"
+    ),
+    placeholders=("feature_focus", "criteria", "dependency_focus"),
+)
+
+DG_MR3_SEED_PROMPT_TEMPLATE = PromptTemplate(
+    template_text=(
+        "请生成一个用于测试静态后向程序切片工具的单文件 C11 程序。"
+        "程序应可独立编译运行，并通过 printf 输出观测变量 <criteria> 的最终值。\n\n"
+        "**重要约束**：\n"
+        "1. 程序控制在 60–120 行，结构清晰\n"
+        "2. 必须包含一个或多个标量全局变量，变量名以 g_ 开头（如 g_result）\n"
+        "3. 观测变量 <criteria> 的值必须依赖于 <dependency_focus>\n"
+        "4. 程序中应包含额外的控制流结构：多余分支、switch、goto、短路求值、不可达路径\n"
+        "5. 只能使用基本 C 特性：指针、数组、结构体、循环、if/else、switch、goto、函数调用\n"
+        "6. 禁止使用：va_arg、setjmp/longjmp、原子操作、VLA、constructor/destructor、内联汇编\n\n"
+        "请围绕 <feature_focus> 构造场景。输出仅包含完整 C 源代码，不要附加解释。"
+    ),
+    placeholders=("feature_focus", "criteria", "dependency_focus"),
+)
+
+
+def build_dg_mr2_prompt(
+    *,
+    feature_focus: str = "",
+    criteria: str = "keep",
+    dependency_focus: str = "",
+) -> str:
+    """Build a DG-safe MR2 prompt (avoids features that break mr_ast_tool)."""
+    if not feature_focus:
+        feature_focus = "独立数据流与冗余赋值链"
+    if not dependency_focus:
+        dependency_focus = "独立局部变量链，不与准则变量形成别名"
+    base = DG_MR2_SEED_PROMPT_TEMPLATE.render(
+        feature_focus=feature_focus,
+        criteria=criteria,
+        dependency_focus=dependency_focus,
+    )
+    return base
+
+
+def build_dg_mr3_prompt(
+    *,
+    feature_focus: str = "",
+    criteria: str = "keep",
+    dependency_focus: str = "",
+) -> str:
+    """Build a DG-safe MR3 prompt (avoids features that break mr_ast_tool)."""
+    if not feature_focus:
+        feature_focus = "额外控制流与不可达路径"
+    if not dependency_focus:
+        dependency_focus = "不可达路径内的局部计算，不改变准则变量取值"
+    base = DG_MR3_SEED_PROMPT_TEMPLATE.render(
+        feature_focus=feature_focus,
+        criteria=criteria,
+        dependency_focus=dependency_focus,
+    )
+    return base
 
 
 def build_mr4_prompt(

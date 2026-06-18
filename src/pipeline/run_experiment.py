@@ -6,7 +6,9 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from common.criteria import load_criteria_spec
 from seeds import resolve_default_creal_script, resolve_default_csmith_home
+from seeds.criteria import write_criteria_file
 
 from .generate_mutants import GenerateMutantsConfig, generate_mutants
 from .run_oracle import RunOracleConfig, run_oracle
@@ -58,6 +60,9 @@ class ExperimentConfig:
     llm_min_topics: int = 2
     no_run_check: bool = False
     max_retries: int = 0
+    # MR1 criteria selection mode
+    mr1_criteria_mode: str = "single"  # "single", "multi_var", "multi_run"
+    mr1_criteria_count: int = 3  # number of variables for multi_var / multi_run
 
 
 def main() -> int:
@@ -120,6 +125,8 @@ def config_from_args(args: argparse.Namespace) -> ExperimentConfig:
         llm_min_topics=args.llm_min_topics,
         no_run_check=args.no_run_check,
         max_retries=args.max_retries,
+        mr1_criteria_mode=args.mr1_criteria_mode,
+        mr1_criteria_count=args.mr1_criteria_count,
     )
 
 
@@ -152,8 +159,80 @@ def run_experiment(config: ExperimentConfig) -> dict[str, object]:
                 "mutation_meta.json",
             )
             oracle_runs: dict[str, dict[str, object]] = {}
+            is_mr1_multi_run = (
+                generation_manifest["mr"] == "MR1"
+                and config.mr1_criteria_mode == "multi_run"
+            )
             for tool in selected_tools:
                 oracle_output_dir = case_dir / f"oracle-{tool}"
+                if is_mr1_multi_run:
+                    # Run oracle once per criterion variable, each with a
+                    # single-variable criteria file.
+                    try:
+                        criteria_spec = load_criteria_spec(criteria_path)
+                    except Exception:
+                        criteria_spec = None
+                    if criteria_spec is None or len(criteria_spec.variables) <= 1:
+                        is_mr1_multi_run = False  # fall through to single run
+                    else:
+                        sub_results: list[dict[str, object]] = []
+                        for variable in criteria_spec.variables:
+                            var_dir = oracle_output_dir / f"var-{variable}"
+                            var_dir.mkdir(parents=True, exist_ok=True)
+                            var_criteria_path = var_dir / "criteria.json"
+                            write_criteria_file(
+                                var_criteria_path,
+                                seed_id=str(case.get("seed_id", "")),
+                                variables=(variable,),
+                            )
+                            try:
+                                sub_result = run_oracle(
+                                    RunOracleConfig(
+                                        tool=tool,
+                                        mr=generation_manifest["mr"],
+                                        seed_path=seed_path,
+                                        mutant_path=mutant_path,
+                                        criteria_path=var_criteria_path,
+                                        mutation_meta_path=mutation_meta_path,
+                                        output_dir=var_dir,
+                                        frama_binary=config.frama_binary,
+                                        frama_args=config.frama_args,
+                                        compiler_binary=config.compiler_binary,
+                                        compiler_args=config.compiler_args,
+                                        link_args=config.link_args,
+                                        csmith_include_dir=config.csmith_include_dir,
+                                        dg_binary=config.dg_binary,
+                                        dg_clang_binary=config.dg_clang_binary,
+                                        dg_llvm_dis_binary=config.dg_llvm_dis_binary,
+                                        dg_lli_binary=config.dg_lli_binary,
+                                        dg_llvm_link_binary=config.dg_llvm_link_binary,
+                                        dg_native_compile_args=config.dg_native_compile_args,
+                                        dg_args=config.dg_args,
+                                        dg_judge_mode=config.dg_judge_mode,
+                                        dg_llm_judge_command=config.dg_llm_judge_command,
+                                        dg_llm_prompt_version=config.dg_llm_prompt_version,
+                                    )
+                                )
+                                sub_results.append({
+                                    "variable": variable,
+                                    "status": sub_result.status.value,
+                                    "reason": sub_result.reason,
+                                    "judge_id": sub_result.judge_id,
+                                    "output_dir": str(var_dir.relative_to(case_dir)),
+                                    "oracle_result_path": str(var_dir / "oracle_result.json"),
+                                })
+                            except Exception as exc:
+                                sub_results.append({
+                                    "variable": variable,
+                                    "status": "ERROR",
+                                    "reason": "oracle_exception",
+                                    "summary": str(exc),
+                                })
+                        oracle_runs[tool] = {
+                            "mode": "multi_run",
+                            "sub_runs": sub_results,
+                        }
+                        continue
                 try:
                     result = run_oracle(
                         RunOracleConfig(
@@ -269,6 +348,8 @@ def _load_or_generate_manifest(
             llm_min_topics=config.llm_min_topics,
             no_run_check=config.no_run_check,
             max_retries=config.max_retries,
+            mr1_criteria_mode=config.mr1_criteria_mode,
+            mr1_criteria_count=config.mr1_criteria_count,
         )
     )
     return payload, config.output_dir
@@ -382,6 +463,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--llm-min-topics", type=int, default=2, help="Minimum topic coverage for feature check")
     parser.add_argument("--no-run-check", action="store_true", help="Skip runtime availability check for LLM seeds")
     parser.add_argument("--max-retries", type=int, default=0, help="Max retries for MR2/MR3 mutation+compile (0=MR-specific defaults: MR2=20, MR3=30)")
+    parser.add_argument("--mr1-criteria-mode", choices=("single", "multi_var", "multi_run"), default="single", help="MR1 criteria selection mode: single (one variable), multi_var (N variables, one oracle run), multi_run (N variables, N oracle runs)")
+    parser.add_argument("--mr1-criteria-count", type=int, default=3, help="Number of criterion variables for MR1 multi_var / multi_run modes")
     return parser.parse_args()
 
 

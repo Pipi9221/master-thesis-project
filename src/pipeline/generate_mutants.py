@@ -53,6 +53,9 @@ class GenerateMutantsConfig:
     no_run_check: bool = False
     # Pipeline-level retry for MR2/MR3
     max_retries: int = 0  # 0 means use MR-specific defaults
+    # MR1 criteria selection mode
+    mr1_criteria_mode: str = "single"  # "single", "multi_var", "multi_run"
+    mr1_criteria_count: int = 3  # number of variables for multi_var / multi_run
 
 
 def main() -> int:
@@ -89,6 +92,8 @@ def config_from_args(args: argparse.Namespace) -> GenerateMutantsConfig:
         llm_min_topics=args.llm_min_topics,
         no_run_check=args.no_run_check,
         max_retries=args.max_retries,
+        mr1_criteria_mode=args.mr1_criteria_mode,
+        mr1_criteria_count=args.mr1_criteria_count,
     )
 
 
@@ -102,7 +107,7 @@ def generate_mutants(config: GenerateMutantsConfig) -> dict[str, object]:
     runner = SubprocessCommandRunner()
     compile_validator = CompileValidator(runner)
     backend = None
-    if config.mr in {"MR2", "MR3"}:
+    if config.mr in {"MR2", "MR3"} and config.seed_source != "llm_online":
         if not config.mr_ast_tool:
             raise SystemExit("--mr-ast-tool is required for MR2 and MR3")
         backend = ToolingBackend(binary=config.mr_ast_tool)
@@ -118,12 +123,16 @@ def generate_mutants(config: GenerateMutantsConfig) -> dict[str, object]:
         try:
             _prepare_case(
                 case, config.mr,
-                preferred_variable=config.llm_criteria if config.llm_criteria != "keep" else "",
+                preferred_variable=config.llm_criteria,
+                mr1_criteria_mode=config.mr1_criteria_mode,
+                mr1_criteria_count=config.mr1_criteria_count,
             )
             rng_seed = config.rng_seed_base + index
             relation_requires_mutant = config.mr != "MR4"
             compile_check = None
-            if config.mr == "MR1":
+            if config.mr == "MR1" or (
+                config.mr in {"MR2", "MR3"} and config.seed_source == "llm_online"
+            ):
                 mutate_result = _materialize_mr1_result(case, rng_seed)
                 compile_check = _run_compile_gate(
                     validator=compile_validator,
@@ -229,6 +238,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--llm-min-topics", type=int, default=2, help="Minimum topic coverage for feature check")
     parser.add_argument("--no-run-check", action="store_true", help="Skip runtime availability check for LLM seeds")
     parser.add_argument("--max-retries", type=int, default=0, help="Max retries for MR2/MR3 mutation+compile (0=MR-specific defaults: MR2=20, MR3=30)")
+    parser.add_argument("--mr1-criteria-mode", choices=("single", "multi_var", "multi_run"), default="single", help="MR1 criteria selection mode: single (one variable), multi_var (N variables, one oracle run), multi_run (N variables, N oracle runs)")
+    parser.add_argument("--mr1-criteria-count", type=int, default=3, help="Number of criterion variables for MR1 multi_var / multi_run modes")
     return parser.parse_args()
 
 
@@ -276,6 +287,18 @@ def _build_seed_source(config: GenerateMutantsConfig):
         if config.mr == "MR1":
             from seeds.llm_online import LlmMr1OnlineSeedSource
             return LlmMr1OnlineSeedSource(
+                runner=SubprocessCommandRunner(),
+                config=llm_config,
+            )
+        if config.mr == "MR2":
+            from seeds.llm_online import LlmMr2OnlineSeedSource
+            return LlmMr2OnlineSeedSource(
+                runner=SubprocessCommandRunner(),
+                config=llm_config,
+            )
+        if config.mr == "MR3":
+            from seeds.llm_online import LlmMr3OnlineSeedSource
+            return LlmMr3OnlineSeedSource(
                 runner=SubprocessCommandRunner(),
                 config=llm_config,
             )
@@ -440,13 +463,20 @@ def _update_retry_meta(
     )
 
 
-def _prepare_case(case: SeedCase, mr: str, *, preferred_variable: str = "") -> None:
+def _prepare_case(
+    case: SeedCase,
+    mr: str,
+    *,
+    preferred_variable: str = "",
+    mr1_criteria_mode: str = "single",
+    mr1_criteria_count: int = 3,
+) -> None:
     source = case.seed_path.read_text(encoding="utf-8")
     mutant_exists = case.mutant_path.exists()
     # For LLM-generated MR1 seeds, the prompt already instructs the LLM to
     # preserve the criteria variable name in both seed and mutant, so prefer
     # the explicitly configured variable over the automatic ranking.
-    if mr == "MR1" and preferred_variable and mutant_exists:
+    if mr in {"MR1", "MR2", "MR3"} and preferred_variable and mutant_exists:
         mutant_text = case.mutant_path.read_text(encoding="utf-8")
         if preferred_variable in source and preferred_variable in mutant_text:
             variables = (preferred_variable,)
@@ -455,28 +485,34 @@ def _prepare_case(case: SeedCase, mr: str, *, preferred_variable: str = "") -> N
             return
     if mutant_exists:
         mutant_text = case.mutant_path.read_text(encoding="utf-8")
-        ranked = rank_variables(source, mutant_text=mutant_text, count=2 if mr == "MR4" else 1)
+        if mr == "MR1" and mr1_criteria_mode != "single":
+            rank_count = mr1_criteria_count
+        elif mr == "MR4":
+            rank_count = 2
+        else:
+            rank_count = 1
+        ranked = rank_variables(source, mutant_text=mutant_text, count=rank_count)
         if ranked:
             variables = tuple(ranked)
             write_criteria_file(case.criteria_path, seed_id=case.seed_id, variables=variables)
             case.write_seed_meta()
             return
     if mr == "MR4":
-        if preferred_variable:
-            preferred = [v.strip() for v in preferred_variable.split(",") if v.strip()]
-            if len(preferred) >= 2 and all(v in source for v in preferred[:2]):
-                variables = tuple(preferred[:2])
-                write_criteria_file(case.criteria_path, seed_id=case.seed_id, variables=variables)
-                case.write_seed_meta()
-                return
-        try:
-            variables = choose_criterion_variables(source, 2)
-        except ValueError:
-            raise RuntimeError(
-                "MR4 criterion selection failed: the generated program lacks enough "
-                "scalar global or local variables to serve as criterion variables. "
-                "Consider re-running or adjusting the prompt."
-            )
+        # Try smart ranking first, then basic selector.  CSmith occasionally
+        # generates programs where every global is an array; rank_variables
+        # handles more edge cases than choose_criterion_variables alone.
+        ranked = rank_variables(source, mutant_text=None, count=2)
+        if ranked and len(ranked) >= 2:
+            variables = tuple(ranked[:2])
+        else:
+            try:
+                variables = choose_criterion_variables(source, 2)
+            except ValueError:
+                raise RuntimeError(
+                    "MR4 criterion selection failed: the generated program lacks "
+                    "enough scalar global or local variables to serve as criterion "
+                    "variables. Consider re-running or adjusting the prompt."
+                )
     else:
         variables = (choose_criterion_variables(source, 1)[0],)
     write_criteria_file(case.criteria_path, seed_id=case.seed_id, variables=variables)

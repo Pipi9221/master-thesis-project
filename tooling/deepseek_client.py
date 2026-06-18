@@ -49,7 +49,7 @@ def _call_deepseek(prompt: str, *, api_key: str, base_url: str, model: str) -> s
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.8,
-            "max_tokens": 4096,
+            "max_tokens": 16384,
         }
     ).encode("utf-8")
 

@@ -165,6 +165,20 @@ class LlmOnlineSeedSource(SeedSource):
                     feature_focus=self._config.feature_focus,
                     dependency_focus=self._config.dependency_focus,
                 )
+            elif self._config.mr == "MR2":
+                from .llm_prompts import build_dg_mr2_prompt
+                prompt_text = build_dg_mr2_prompt(
+                    feature_focus=self._config.feature_focus,
+                    criteria=self._config.criteria,
+                    dependency_focus=self._config.dependency_focus,
+                )
+            elif self._config.mr == "MR3":
+                from .llm_prompts import build_dg_mr3_prompt
+                prompt_text = build_dg_mr3_prompt(
+                    feature_focus=self._config.feature_focus,
+                    criteria=self._config.criteria,
+                    dependency_focus=self._config.dependency_focus,
+                )
             else:
                 prompt_text = build_prompt(
                     mr=self._config.mr,
@@ -420,13 +434,15 @@ def _write_failure_meta(
 _MR1_VARIANT_DELIMITER = "// ===VARIANT==="
 
 
-class LlmMr1OnlineSeedSource(SeedSource):
-    """LLM seed source for MR1 that generates both seed.c and mutant.c in a
-    single LLM call.
+class _LlmDualOutputSeedSource(SeedSource):
+    """Base class for LLM seed sources that generate seed + mutant in a single
+    LLM call (dual-output pattern).
 
-    The LLM is asked to output two semantically-equivalent C programs separated
-    by ``// ===VARIANT===``.  The first becomes ``seed.c``, the second becomes
+    The LLM is asked to output two C programs separated by
+    ``// ===VARIANT===``.  The first becomes ``seed.c``, the second becomes
     ``mutant.c``.
+
+    Subclasses provide the MR-specific prompt builder.
     """
 
     def __init__(
@@ -434,12 +450,14 @@ class LlmMr1OnlineSeedSource(SeedSource):
         *,
         runner: CommandRunner,
         config: LlmOnlineConfig,
+        prompt_builder,
     ) -> None:
         self._runner = runner
         self._config = config
+        self._prompt_builder = prompt_builder
 
     def materialize_cases(self, output_dir: Path) -> list[SeedCase]:
-        from .llm_prompts import build_mr1_dual_prompt, compute_prompt_hash, render_prompt_file
+        from .llm_prompts import compute_prompt_hash, render_prompt_file
 
         cases: list[SeedCase] = []
 
@@ -448,7 +466,7 @@ class LlmMr1OnlineSeedSource(SeedSource):
             case_dir = output_dir / seed_id
             case_dir.mkdir(parents=True, exist_ok=True)
 
-            prompt_text = build_mr1_dual_prompt(
+            prompt_text = self._prompt_builder(
                 feature_focus=self._config.feature_focus,
                 criteria=self._config.criteria,
                 dependency_focus=self._config.dependency_focus,
@@ -458,7 +476,7 @@ class LlmMr1OnlineSeedSource(SeedSource):
             seed_case: SeedCase | None = None
 
             for retry in range(self._config.max_retries):
-                seed_code, mutant_code = self._call_llm_mr1(
+                seed_code, mutant_code = self._call_llm_dual(
                     case_dir=case_dir,
                     prompt_text=prompt_text,
                     seed_id=seed_id,
@@ -536,7 +554,7 @@ class LlmMr1OnlineSeedSource(SeedSource):
 
         return cases
 
-    def _call_llm_mr1(
+    def _call_llm_dual(
         self,
         *,
         case_dir: Path,
@@ -615,6 +633,30 @@ class LlmMr1OnlineSeedSource(SeedSource):
             include_dir=self._config.compile_include_dir,
         )
         return result.exit_code == 0, result
+
+
+class LlmMr1OnlineSeedSource(_LlmDualOutputSeedSource):
+    """MR1 dual-output: seed + semantically-equivalent variant."""
+
+    def __init__(self, *, runner: CommandRunner, config: LlmOnlineConfig) -> None:
+        from .llm_prompts import build_mr1_dual_prompt
+        super().__init__(runner=runner, config=config, prompt_builder=build_mr1_dual_prompt)
+
+
+class LlmMr2OnlineSeedSource(_LlmDualOutputSeedSource):
+    """MR2 dual-output: seed + variant with irrelevant data-flow noise."""
+
+    def __init__(self, *, runner: CommandRunner, config: LlmOnlineConfig) -> None:
+        from .llm_prompts import build_mr2_dual_prompt
+        super().__init__(runner=runner, config=config, prompt_builder=build_mr2_dual_prompt)
+
+
+class LlmMr3OnlineSeedSource(_LlmDualOutputSeedSource):
+    """MR3 dual-output: seed + variant with irrelevant control-flow noise."""
+
+    def __init__(self, *, runner: CommandRunner, config: LlmOnlineConfig) -> None:
+        from .llm_prompts import build_mr3_dual_prompt
+        super().__init__(runner=runner, config=config, prompt_builder=build_mr3_dual_prompt)
 
 
 def _extract_c_code_block(text: str) -> str:

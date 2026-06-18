@@ -263,6 +263,8 @@ class BatchController:
                 llm_min_topics=config.llm_min_topics,
                 no_run_check=config.no_run_check,
                 max_retries=config.max_retries,
+                mr1_criteria_mode=config.mr1_criteria_mode,
+                mr1_criteria_count=config.mr1_criteria_count,
             )
 
             try:
@@ -516,6 +518,8 @@ def main() -> int:
     parser.add_argument("--llm-required-topics", default="")
     parser.add_argument("--llm-min-topics", type=int, default=2)
     parser.add_argument("--no-run-check", action="store_true")
+    parser.add_argument("--mr1-criteria-mode", choices=("single", "multi_var", "multi_run"), default="single", help="MR1 criteria selection mode")
+    parser.add_argument("--mr1-criteria-count", type=int, default=3, help="Number of criterion variables for MR1 multi_var / multi_run modes")
 
     args = parser.parse_args()
 
@@ -570,6 +574,8 @@ def main() -> int:
         llm_required_topics=args.llm_required_topics,
         llm_min_topics=args.llm_min_topics,
         no_run_check=args.no_run_check,
+        mr1_criteria_mode=args.mr1_criteria_mode,
+        mr1_criteria_count=args.mr1_criteria_count,
     )
 
     if args.action == "start":

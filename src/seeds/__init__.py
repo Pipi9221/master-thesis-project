@@ -13,7 +13,7 @@ from .llm_feature_checker import (
     summarize_features,
 )
 from .llm_files import LLMFileSeedSource
-from .llm_online import LlmOnlineConfig, LlmOnlineSeedSource
+from .llm_online import LlmMr1OnlineSeedSource, LlmMr2OnlineSeedSource, LlmMr3OnlineSeedSource, LlmOnlineConfig, LlmOnlineSeedSource
 from .llm_prompts import (
     BASE_PROMPT_TEMPLATE,
     JUDGE_MR_EXPECTATIONS,
@@ -57,6 +57,9 @@ __all__ = [
     "LLMFileSeedSource",
     "LlmOnlineConfig",
     "LlmOnlineSeedSource",
+    "LlmMr1OnlineSeedSource",
+    "LlmMr2OnlineSeedSource",
+    "LlmMr3OnlineSeedSource",
     "TOPIC_PATTERNS",
     "FeatureCheckResult",
     "check_semantic_features",
