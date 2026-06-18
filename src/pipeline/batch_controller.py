@@ -508,6 +508,14 @@ def main() -> int:
     parser.add_argument("--dg-llvm-dis-binary", default=os.environ.get("DG_LLVM_DIS_BINARY"))
     parser.add_argument("--creal-python", default=os.environ.get("CREAL_PYTHON", "/usr/bin/python3"))
     parser.add_argument("--seed-dir", default=None)
+    parser.add_argument("--llm-command", default=os.environ.get("LLM_COMMAND", ""), help="LLM command template for llm_online")
+    parser.add_argument("--llm-feature-focus", default="")
+    parser.add_argument("--llm-criteria", default="keep")
+    parser.add_argument("--llm-dependency-focus", default="")
+    parser.add_argument("--llm-max-retries", type=int, default=3)
+    parser.add_argument("--llm-required-topics", default="")
+    parser.add_argument("--llm-min-topics", type=int, default=2)
+    parser.add_argument("--no-run-check", action="store_true")
 
     args = parser.parse_args()
 
@@ -554,6 +562,14 @@ def main() -> int:
         dg_llvm_dis_binary=args.dg_llvm_dis_binary,
         creal_python=args.creal_python,
         seed_dir=args.seed_dir,
+        llm_command=args.llm_command,
+        llm_feature_focus=args.llm_feature_focus,
+        llm_criteria=args.llm_criteria,
+        llm_dependency_focus=args.llm_dependency_focus,
+        llm_max_retries=args.llm_max_retries,
+        llm_required_topics=args.llm_required_topics,
+        llm_min_topics=args.llm_min_topics,
+        no_run_check=args.no_run_check,
     )
 
     if args.action == "start":
